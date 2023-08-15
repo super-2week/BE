@@ -1,0 +1,10 @@
+Spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/shopping2
+    username: root
+    password: 4865
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
