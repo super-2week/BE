@@ -40,6 +40,9 @@ public class Order {
     @Column(name = "phone_number", nullable = false, length = 11)
     private String phoneNumber;
 
+    @Column(name="post_comment")
+    private String postComment;
+
     @Column(name="is_deleted", nullable = false)
     private Boolean isDeleted;
 
