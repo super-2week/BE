@@ -33,10 +33,10 @@ public class User {
 	private Long id;
 
 	@OneToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(name = "user_name")
+	@Column(name = "user_name", nullable = false)
 	private String userName;
 
 	@Column(name = "image_url")
