@@ -25,7 +25,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = "product_id")
+@EqualsAndHashCode(of = "id")
 public class Product {
 
 	@Id
@@ -40,8 +40,11 @@ public class Product {
 	@Column(name = "image_url", length = 50) //null 허용
 	private String imageUrl;
 
-	@Column(name = "category", nullable = false)
-	private Integer category;
+	@Column(name = "animal_category", nullable = false) //1~4
+	private Integer animalCategory;
+
+	@Column(name = "product_category", nullable = false) //1~6
+	private Integer productCategory;
 
 	@Column(name = "product_name", nullable = false, length = 20)
 	private String productName;
@@ -55,7 +58,12 @@ public class Product {
 	@Column(name = "stock", nullable = false)
 	private Integer stock;
 
+	@Column(name = "wish_count", nullable = false)
+	private Integer wishCount;
+
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime created_at;
+
+
 
 }
