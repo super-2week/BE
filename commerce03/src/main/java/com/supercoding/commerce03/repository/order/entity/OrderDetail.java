@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.repository.order.entity;
 
 
+import com.supercoding.commerce03.repository.product.entity.Product;
 import lombok.*;
 
 import javax.persistence.*;
@@ -20,11 +21,13 @@ public class OrderDetail {
     @Column(name="order_detail_id", nullable = false)
     private Integer id;
 
-    @Column(name="order_id", nullable = false)
-    private Integer orderId;
+    @OneToOne
+    @JoinColumn(name="order_id", nullable = false)
+    private Order order;
 
-    @Column(name="product_id", nullable = false)
-    private Integer productId;
+    @OneToOne
+    @JoinColumn(name="product_id", nullable = false)
+    private Product product;
 
     @Column(name="price", nullable = false)
     private Integer price;

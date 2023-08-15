@@ -1,13 +1,10 @@
-package com.supercoding.commerce03.repository.review.entity;
+package com.supercoding.commerce03.repository.store.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,24 +12,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "Review_Images")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Entity
 @Builder
-public class ReviewImage {
+@Table(name = "Stores")
+public class Store {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "review_image_id", nullable = false)
+	@Column(name = "store_id", nullable = false)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "review_id")
-	private Review review;
+	@Column(name = "status_name", nullable = false, length = 20)
+	private String statusName;
 
-	@Column(name = "review_image_url")
-	private String reviewImageUrl;
+	@Column(name = "context", nullable = false, length = 20)
+	private String contact;
 }
