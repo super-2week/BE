@@ -22,22 +22,22 @@ public class UserDetail {
 	private Long id;
 
 	@OneToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
 	@OneToOne
-	@JoinColumn(name = "payment_id")
+	@JoinColumn(name = "payment_id", nullable = false)
 	private Payment payment;
 
-	@Column(name = "password")
+	@Column(name = "password", nullable = false)
 	private String password;
 
-	@Column(name = "address")
+	@Column(name = "address", nullable = false)
 	private String address;
 
-	@Column(name = "phone_number")
+	@Column(name = "phone_number", nullable = false)
 	private String phoneNumber;
 
-	@Column(name = "email")
+	@Column(name = "email", nullable = false)
 	private String email;
 }
