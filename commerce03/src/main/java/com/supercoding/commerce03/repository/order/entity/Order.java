@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.repository.order.entity;
 
 
+import com.supercoding.commerce03.repository.user.entity.User;
 import lombok.*;
 
 import javax.persistence.*;
@@ -18,10 +19,11 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="order_id", nullable = false)
-    private Integer id;
+    private Long id;
 
-    @Column(name="user_id", nullable = false)
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_id", nullable = false)
+    private User user;
 
     @Column(name="status", nullable = false)
     private Integer status;
