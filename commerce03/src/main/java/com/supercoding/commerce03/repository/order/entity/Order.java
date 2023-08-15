@@ -46,4 +46,7 @@ public class Order {
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
 
+    @Column(name = "total_amount")
+    private Integer totalAmount;
+
 }
