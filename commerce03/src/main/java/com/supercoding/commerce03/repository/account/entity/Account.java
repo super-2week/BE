@@ -20,6 +20,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "Accounts")
 @Getter
@@ -34,21 +36,17 @@ public class Account {
 	@Column(name = "account_id", nullable = false)
 	private Long id;
 
-	@OneToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="user_id", nullable = false)
 	private User user;
-
-	@OneToOne
-	@JoinColumn(name = "order_id")
-	private Order order;
 
 	@Column(name = "account_by", nullable = false)
 	private Integer accountBy;
 
-	@Column(name = "account_num", nullable = false)
+	@Column(name = "account_num")
 	private Integer accountNum;
 
-	@Column(name = "card_num", nullable = false)
+	@Column(name = "card_num")
 	private Integer cardNum;
 
 	@Column(name = "total_account", nullable = false)
@@ -56,5 +54,5 @@ public class Account {
 
 	@Column(name = "created_at")
 	@CreatedDate
-	private String created_at;
+	private LocalDateTime createdAt;
 }
