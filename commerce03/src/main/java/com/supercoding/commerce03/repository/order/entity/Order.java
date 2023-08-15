@@ -31,7 +31,10 @@ public class Order {
     @Column(name="ordered_at", nullable = false)
     private LocalDateTime orderedAt;
 
-    @Column(name = "address", nullable = false, length= 100)
+    @Column(name = "recipient", nullable = false)
+    private String recipient;
+
+    @Column(name = "address", nullable = false, length = 100)
     private String address;
 
     @Column(name = "phone_number", nullable = false, length = 11)
