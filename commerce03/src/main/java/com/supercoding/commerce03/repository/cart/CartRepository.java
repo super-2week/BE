@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
-	boolean existsByUserIdAndProductId(Long userId, Long inputProductId);
+	boolean existsByUserIdAndProductIdAndIsDeleted(Long userId, Long productId, Boolean isDeleted);
+
+	Cart findByIdAndUserIdAndIsDeleted(Long cartId, Long userId, boolean isDeleted);
 }
