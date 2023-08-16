@@ -3,11 +3,18 @@ package com.supercoding.commerce03.service.product;
 import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.store.entity.Store;
+import com.supercoding.commerce03.repository.user.UserRepository;
+import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.repository.wish.WishRepository;
+import com.supercoding.commerce03.repository.wish.entity.Wish;
+import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
+import com.supercoding.commerce03.service.cart.exception.CartException;
+import com.supercoding.commerce03.service.product.exception.ProductErrorCode;
+import com.supercoding.commerce03.service.product.exception.ProductException;
 import com.supercoding.commerce03.web.dto.product.DummyRequestDto;
 import com.supercoding.commerce03.web.dto.product.DummyStoreDto;
 import com.supercoding.commerce03.web.dto.product.GetRequestDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
@@ -18,11 +25,14 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class ProductService {
 
     @PersistenceContext
     private final EntityManager entityManager;
     private final ProductRepository productRepository;
+    private final WishRepository wishRepository;
+    private final UserRepository userRepository;
 
     public List<Product> getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
         int pageSize = 15;
@@ -57,8 +67,7 @@ public class ProductService {
         jpqlQuery.setFirstResult((pageNumber - 1) * pageSize); // Offset 계산
         jpqlQuery.setMaxResults(pageSize); // Limit 설정
 
-        List<Product> products = jpqlQuery.getResultList();
-        return products;
+        return jpqlQuery.getResultList();
     }
 
     public List<Product> getPopularTen(GetRequestDto getRequestDto) {
@@ -73,8 +82,7 @@ public class ProductService {
         jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
         jpqlQuery.setMaxResults(10); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
 
-        List<Product> products = jpqlQuery.getResultList();
-        return products;
+        return jpqlQuery.getResultList();
     }
 
     public List<Product> getRecommendThree(GetRequestDto getRequestDto) {
@@ -89,8 +97,7 @@ public class ProductService {
         jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
         jpqlQuery.setMaxResults(3); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
 
-        List<Product> products = jpqlQuery.getResultList();
-        return products;
+        return jpqlQuery.getResultList();
     }
 
     public Product getProduct(Integer productId) {
@@ -108,7 +115,6 @@ public class ProductService {
         }
     }
 
-    @Transactional
     public void handleDummyStore(DummyStoreDto dummyStoreDto){
         List<Store> stores = new ArrayList<>();
         for (int i = 0; i < 10; i++) { // Create 500 products per DummyRequestDto
@@ -121,7 +127,6 @@ public class ProductService {
         bulkInsert2(stores);
     }
 
-    @Transactional
     public void handleDummyInsertion(DummyRequestDto dummyRequestDto) {
 
         List<Product> products = new ArrayList<>();
@@ -145,7 +150,6 @@ public class ProductService {
 
     }
 
-    @Transactional
     public void bulkInsert(List<Product> products) {
         for (Product product : products) {
             entityManager.persist(product);
@@ -156,7 +160,6 @@ public class ProductService {
         }
     }
 
-    @Transactional
     public void bulkInsert2(List<Store> stores) {
         for (Store store : stores) {
             entityManager.persist(store);
@@ -168,7 +171,45 @@ public class ProductService {
     }
 
 
-    public void postWishProduct(int userId, int productId) {
+    public Wish addWishList(Long userId, Long productId) {
+        User validatedUser = validateUser(userId);
+        Product validatedProduct = validateProduct(productId);
+
+        if (existsInWishList(userId, productId)) {
+            throw new ProductException(ProductErrorCode.WISHLIST_ALREADY_EXISTS);
+        }
+
+        return wishRepository.save(
+                        Wish.builder()
+                                .user(validatedUser)
+                                .product(validatedProduct)
+                                .build()
+
+        );
+
 
     }
+
+    public List<Wish> getWishList(int userId) {
+        User validatedUser = validateUser((long)userId);
+        return wishRepository.findByUser_Id(validatedUser.getId());
+    }
+
+    private User validateUser(Long userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ProductException(ProductErrorCode.USER_NOT_FOUND));
+    }
+
+    private Product validateProduct(Long productId){
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ProductErrorCode.THIS_PRODUCT_DOES_NOT_EXIST));
+
+        return product;
+    }
+
+    private boolean existsInWishList(Long userId, Long productId){
+        return wishRepository.existsByUserIdAndProductId(userId, productId);
+    }
+
+
 }

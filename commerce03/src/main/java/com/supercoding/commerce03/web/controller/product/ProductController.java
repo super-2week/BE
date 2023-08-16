@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.web.controller.product;
 
 import com.supercoding.commerce03.repository.product.entity.Product;
+import com.supercoding.commerce03.repository.wish.entity.Wish;
 import com.supercoding.commerce03.service.product.ProductService;
 import com.supercoding.commerce03.web.dto.product.DummyRequestDto;
 import com.supercoding.commerce03.web.dto.product.DummyStoreDto;
@@ -37,7 +38,7 @@ public class ProductController {
             "/{animalCategory}" ,
             "/{animalCategory}/{productCategory}",
             "/{animalCategory}/{productCategory}/{sortBy}"})
-    public GetResponseDto getProducts(
+    public ResponseEntity<GetResponseDto> getProducts(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -62,8 +63,7 @@ public class ProductController {
         List<Product> recommendList = productService.getRecommendThree(getRequestDto);
 
         GetResponseDto response = new GetResponseDto(products, popularList, recommendList);
-
-        return response;
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -72,24 +72,38 @@ public class ProductController {
      * @return
      */
     @GetMapping("/product/{productId}")
-    public Product getProduct(
+    public ResponseEntity<Product> getProduct(
             @PathVariable Integer productId
 
     ) {
         Product product = productService.getProduct(productId);
-        return product;
+        return ResponseEntity.ok(product);
     }
 
-    @PostMapping("/product/{productId}")
-    public Product postWishProduct(
+    @GetMapping("/product/wish")
+    public ResponseEntity<List<Wish>> getWishList(){
+        //TODO: 로그인한 유저정보 가져오기
+        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        //String email = authentication.getName();
+        int userId = 1;
+        List<Wish> wishList = productService.getWishList(userId);
+        return ResponseEntity.ok(wishList);
+    }
+
+    @PostMapping("/product/wish/{productId}")
+    public ResponseEntity<Wish> addWishList(
             @PathVariable Integer productId
     ){
         //TODO: 로그인한 유저정보 가져오기
         //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         //String email = authentication.getName();
         int userId = 1;
-        productService.postWishProduct(userId, productId);
+        Wish wish = productService.addWishList((long)userId, (long)productId);
+        return ResponseEntity.ok(wish);
     }
+
+    @DeleteMapping("/product/wish/{productId}")
+
 
     @PostMapping("/dummy")
     @ResponseBody
