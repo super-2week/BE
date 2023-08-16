@@ -38,17 +38,9 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(CartException.class)
-	public ResponseEntity<?> handleMemberException(CartException e){
+	public ResponseEntity<?> handleCartException(CartException e){
 
-		if (e.getErrorCode() == OUT_OF_STOCK || e.getErrorCode() == PRODUCT_ALREADY_EXISTS) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(CartErrorResponse.builder()
-							.errorCode(e.getErrorCode())
-							.errorMessage(e.getErrorMessage())
-							.build());
-		}
-
-		return ResponseEntity.badRequest()
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
 				.body(CartErrorResponse.builder()
 						.errorCode(e.getErrorCode())
 						.errorMessage(e.getErrorMessage())
