@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum CartErrorCode {
-	//status(HttpStatus.CONFLICT) 400
+	//status(HttpStatus.badRequest) 400
 	INVALID_QUANTITY("수량을 확인해주세요."),
 	USER_NOT_FOUND("존재하지 않는 유저 입니다."),
 	THIS_PRODUCT_DOES_NOT_EXIST("존재하지 않는 상품 입니다."),
