@@ -5,10 +5,12 @@ import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.store.entity.Store;
 import com.supercoding.commerce03.web.dto.product.DummyRequestDto;
 import com.supercoding.commerce03.web.dto.product.DummyStoreDto;
+import com.supercoding.commerce03.web.dto.product.GetRequestDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
+import javax.persistence.*;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,15 +20,56 @@ import java.util.List;
 @Service
 public class ProductService {
 
+    @PersistenceContext
     private final EntityManager entityManager;
     private final ProductRepository productRepository;
 
-    public List<Product> getProductsList(Integer animalCategory, Integer productCategory, Integer sortBy, String searchWord) {
-    return null;
+    public List<Product> getProductsList(GetRequestDto getRequestDto, String searchWord) {
+
+        String query =
+                "SELECT p FROM Product p " +
+                "WHERE p.animalCategory = :animalCategory " +
+                "AND p.productCategory = :productCategory ";
+
+        if(searchWord != null && !searchWord.isEmpty()){
+            query += "AND p.productName LIKE :searchWord ";
+        }
+
+        if ("wishCount".equals(getRequestDto.getSortBy())) {
+            //인기순
+            query += "ORDER BY p.price ASC";
+        } else if ("createdAt".equals(getRequestDto.getSortBy())) {
+            //최신순
+            query += "ORDER BY p.create_at ASC";
+        } else {
+            // 기본 정렬 기준 (가격순)
+            query += "ORDER BY p.price ASC";
+        }
+
+        Query jpqlQuery = entityManager.createQuery(query, Product.class);
+        jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
+        jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
+        if(searchWord != null && !searchWord.isEmpty()) {
+            jpqlQuery.setParameter("searchWord", "%" + searchWord + "%");
+        }
+        List<Product> products = jpqlQuery.getResultList();
+
+        return products;
     }
 
-    public Product getProduct() {
-        return null;
+    public Product getProduct(Integer productId) {
+
+        try {
+            String query = "SELECT p FROM Product p WHERE p.id = :productId";
+            TypedQuery<Product> jpqlQuery = entityManager.createQuery(query, Product.class);
+            jpqlQuery.setParameter("productId", (long)productId);
+
+            return jpqlQuery.getSingleResult();
+        } catch (NoResultException e) {
+            //TODO : Exception 만들기
+
+            return null;
+        }
     }
 
     @Transactional
@@ -57,7 +100,7 @@ public class ProductService {
                     .description(dummyRequestDto.getDescription())
                     .stock(dummyRequestDto.getStock())
                     .wishCount(dummyRequestDto.getWishCount())
-                    .created_at(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
                     .build();
             products.add(product);
         }

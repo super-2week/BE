@@ -62,7 +62,7 @@ public class Product {
 	private Integer wishCount;
 
 	@Column(name = "created_at", nullable = false)
-	private LocalDateTime created_at;
+	private LocalDateTime createdAt;
 
 
 
