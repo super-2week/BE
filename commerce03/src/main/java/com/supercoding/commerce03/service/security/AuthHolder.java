@@ -5,7 +5,8 @@ public class AuthHolder {
     public static void setUserId(Long userId) {
         userIdHolder.set(userId);
     }
-    public static void getUserId() {
-        userIdHolder.get();
+    public static Long getUserId() {
+      return  userIdHolder.get();
+
     }
 }
