@@ -3,21 +3,10 @@ package com.supercoding.commerce03.repository.account.entity;
 import com.supercoding.commerce03.repository.order.entity.Order;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.user.entity.User;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import javax.persistence.*;
+
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -29,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of="account_id")
 public class Account {
 
 	@Id
@@ -40,19 +30,23 @@ public class Account {
 	@JoinColumn(name="user_id", nullable = false)
 	private User user;
 
-	@Column(name = "account_by", nullable = false)
-	private Integer accountBy;
+	@Column(name = "account_by", nullable = false) // 페이충전수단
+	@Enumerated(EnumType.STRING)
+	private AccountByType accountBy;
 
-	@Column(name = "account_num")
-	private Integer accountNum;
+	@Column(name = "number") // 계좌번호
+	private Integer num;
 
-	@Column(name = "card_num")
-	private Integer cardNum;
+//	@Column(name = "card_num") // 카드번호
+//	private Integer cardNum;
 
-	@Column(name = "total_account", nullable = false)
+	@Column(name = "total_account", nullable = false) //페이충전액
 	private Integer totalAccount;
 
-	@Column(name = "created_at")
+	@Column(name = "created_at") // 페이충전일
 	@CreatedDate
 	private LocalDateTime createdAt;
+
+
+
 }

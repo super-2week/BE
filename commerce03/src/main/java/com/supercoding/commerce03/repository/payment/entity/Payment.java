@@ -30,11 +30,11 @@ public class Payment {
 	@JoinColumn(name = "user_detail_id", nullable = false)
 	private UserDetail userDetail;
 
-	@Column(name = "created_at")
+	@Column(name = "created_at") // 페이충전일
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@Column(name = "total_payment", nullable = false)
+	@Column(name = "total_payment", nullable = false) // 페이보유액
 	private Integer totalPayment;
 
 }
