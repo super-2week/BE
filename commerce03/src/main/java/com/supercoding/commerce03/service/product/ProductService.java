@@ -24,7 +24,8 @@ public class ProductService {
     private final EntityManager entityManager;
     private final ProductRepository productRepository;
 
-    public List<Product> getProductsList(GetRequestDto getRequestDto, String searchWord) {
+    public List<Product> getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
+        int pageSize = 15;
 
         String query =
                 "SELECT p FROM Product p " +
@@ -37,10 +38,10 @@ public class ProductService {
 
         if ("wishCount".equals(getRequestDto.getSortBy())) {
             //인기순
-            query += "ORDER BY p.price ASC";
+            query += "ORDER BY p.wishCount DESC";
         } else if ("createdAt".equals(getRequestDto.getSortBy())) {
             //최신순
-            query += "ORDER BY p.create_at ASC";
+            query += "ORDER BY p.createdAt DESC";
         } else {
             // 기본 정렬 기준 (가격순)
             query += "ORDER BY p.price ASC";
@@ -52,8 +53,43 @@ public class ProductService {
         if(searchWord != null && !searchWord.isEmpty()) {
             jpqlQuery.setParameter("searchWord", "%" + searchWord + "%");
         }
-        List<Product> products = jpqlQuery.getResultList();
 
+        jpqlQuery.setFirstResult((pageNumber - 1) * pageSize); // Offset 계산
+        jpqlQuery.setMaxResults(pageSize); // Limit 설정
+
+        List<Product> products = jpqlQuery.getResultList();
+        return products;
+    }
+
+    public List<Product> getPopularTen(GetRequestDto getRequestDto) {
+        String query =
+                "SELECT p FROM Product p " +
+                "WHERE p.animalCategory = :animalCategory " +
+                "AND p.productCategory = :productCategory " +
+                "ORDER BY p.wishCount DESC";
+
+        Query jpqlQuery = entityManager.createQuery(query, Product.class);
+        jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
+        jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
+        jpqlQuery.setMaxResults(10); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
+
+        List<Product> products = jpqlQuery.getResultList();
+        return products;
+    }
+
+    public List<Product> getRecommendThree(GetRequestDto getRequestDto) {
+        String query =
+                "SELECT p FROM Product p " +
+                        "WHERE p.animalCategory = :animalCategory " +
+                        "AND p.productCategory = :productCategory " +
+                        "ORDER BY p.stock DESC";
+
+        Query jpqlQuery = entityManager.createQuery(query, Product.class);
+        jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
+        jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
+        jpqlQuery.setMaxResults(3); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
+
+        List<Product> products = jpqlQuery.getResultList();
         return products;
     }
 
@@ -130,4 +166,6 @@ public class ProductService {
             }
         }
     }
+
+
 }
