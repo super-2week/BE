@@ -28,7 +28,7 @@ public class Cart {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "review_id", nullable = false)
+	@Column(name = "cart_id", nullable = false)
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -38,4 +38,7 @@ public class Cart {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "product_id")
 	private Product product;
+
+	@Column(name = "quantity")
+	private Integer quantity;
 }
