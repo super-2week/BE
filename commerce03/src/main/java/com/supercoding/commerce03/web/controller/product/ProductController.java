@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -76,6 +78,17 @@ public class ProductController {
     ) {
         Product product = productService.getProduct(productId);
         return product;
+    }
+
+    @PostMapping("/product/{productId}")
+    public Product postWishProduct(
+            @PathVariable Integer productId
+    ){
+        //TODO: 로그인한 유저정보 가져오기
+        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        //String email = authentication.getName();
+        int userId = 1;
+        productService.postWishProduct(userId, productId);
     }
 
     @PostMapping("/dummy")

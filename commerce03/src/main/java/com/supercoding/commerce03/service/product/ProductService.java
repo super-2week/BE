@@ -168,4 +168,7 @@ public class ProductService {
     }
 
 
+    public void postWishProduct(int userId, int productId) {
+
+    }
 }
