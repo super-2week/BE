@@ -79,7 +79,7 @@ public class ProductController {
         Product product = productService.getProduct(productId);
         return ResponseEntity.ok(product);
     }
-
+    
     @GetMapping("/product/wish")
     public ResponseEntity<List<Wish>> getWishList(){
         //TODO: 로그인한 유저정보 가져오기
