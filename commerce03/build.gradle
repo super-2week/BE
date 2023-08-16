@@ -34,6 +34,10 @@ dependencies {
 
     // json
     implementation 'org.json:json:20230227'
+
+    //Mapstruct
+    implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 }
 
 tasks.named('test') {
