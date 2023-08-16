@@ -8,7 +8,7 @@ import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
 import com.supercoding.commerce03.service.cart.exception.CartException;
-import com.supercoding.commerce03.web.dto.cart.AddCart.Request;
+import com.supercoding.commerce03.web.dto.cart.AddCart;
 import com.supercoding.commerce03.web.dto.cart.CartDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class CartService {
 	private final CartRepository cartRepository;
 	private final UserRepository userRepository;
 
-	public CartDto addToCart(Request request, Long userId){
+	public CartDto addToCart(AddCart.Request request, Long userId){
 
 		Long inputProductId = request.getProductId();
 		Integer inputQuantity = request.getQuantity();
