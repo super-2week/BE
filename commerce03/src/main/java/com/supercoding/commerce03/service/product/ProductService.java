@@ -171,12 +171,12 @@ public class ProductService {
     }
 
 
-    public Wish addWishList(Long userId, Long productId) {
+    public Wish addWishList(long userId, long productId) {
         User validatedUser = validateUser(userId);
         Product validatedProduct = validateProduct(productId);
 
         if (existsInWishList(userId, productId)) {
-            throw new ProductException(ProductErrorCode.WISHLIST_ALREADY_EXISTS);
+            throw new ProductException(ProductErrorCode.ALREADY_EXISTS_IN_WISHLIST);
         }
 
         return wishRepository.save(
@@ -190,26 +190,34 @@ public class ProductService {
 
     }
 
-    public List<Wish> getWishList(int userId) {
-        User validatedUser = validateUser((long)userId);
-        return wishRepository.findByUser_Id(validatedUser.getId());
+    public List<Wish> getWishList(long userId) {
+        User validatedUser = validateUser(userId);
+        return wishRepository.findByUserId(validatedUser.getId()); //없으면 빈 배열을 반환해야 한다.
     }
 
-    private User validateUser(Long userId){
+    public void deleteWishList(long userId, long productId) {
+        Wish targetWish = wishRepository.findByUserIdAndProductId(userId, productId)
+                .orElseThrow(()->new ProductException(ProductErrorCode.NOT_FOUND_IN_WISHLIST)); //없으면 예외처리
+
+        wishRepository.delete(targetWish);
+    }
+
+    private User validateUser(long userId){
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.USER_NOT_FOUND));
     }
 
-    private Product validateProduct(Long productId){
+    private Product validateProduct(long productId){
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.THIS_PRODUCT_DOES_NOT_EXIST));
 
         return product;
     }
 
-    private boolean existsInWishList(Long userId, Long productId){
+    private boolean existsInWishList(long userId, long productId){
         return wishRepository.existsByUserIdAndProductId(userId, productId);
     }
+
 
 
 }

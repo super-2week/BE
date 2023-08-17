@@ -13,7 +13,8 @@ public enum ProductErrorCode {
 
     //status(HttpStatus.CONFLICT) 409
     OUT_OF_STOCK("상품이 품절되었습니다."),
-    WISHLIST_ALREADY_EXISTS("이미 찜한 상품입니다.");
+    NOT_FOUND_IN_WISHLIST("관심상품 리스트에 없는 상품입니다."),
+    ALREADY_EXISTS_IN_WISHLIST("이미 찜한 상품입니다.");
 
     private final String description;
 
