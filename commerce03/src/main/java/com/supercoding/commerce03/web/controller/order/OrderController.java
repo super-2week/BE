@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -66,6 +67,18 @@ public class OrderController {
     ) {
         String response = orderService.deleteOneInOrderList(orderId);
         return ResponseEntity.ok(response);
+
+    }
+
+    //주문 상세 보기
+    @GetMapping("/detail/{orderId}")
+    public ResponseEntity<?> orderViewDetail(
+            @PathVariable String orderId
+    ) {
+        OrderDto.OrderRegisterResponse orderDetailResponse
+                = orderService.orderViewDetail(orderId);
+
+        return ResponseEntity.ok(orderDetailResponse);
 
     }
 
