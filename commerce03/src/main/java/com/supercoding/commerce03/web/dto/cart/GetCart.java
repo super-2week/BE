@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
-public class RemoveCart {
+public class GetCart {
 
 	@Setter
 	@Getter
@@ -16,13 +15,23 @@ public class RemoveCart {
 	@Builder
 	public static class Response {
 
+		private Long cartId;
 		private Long productId;
 		private String productName;
+		private Integer price;
+		private Integer quantity;
+		private Integer total;
+		private String imageUrl;
 
-		public static Response from(CartDto cartDto){
-			return Response.builder()
+		public static GetCart.Response from(CartDto cartDto){
+			return GetCart.Response.builder()
+					.cartId(cartDto.getCartId())
 					.productId(cartDto.getProductId())
 					.productName(cartDto.getProductName())
+					.price(cartDto.getPrice())
+					.quantity(cartDto.getQuantity())
+					.total(cartDto.getTotal())
+					.imageUrl(cartDto.getImageUrl())
 					.build();
 		}
 	}

@@ -3,10 +3,7 @@ package com.supercoding.commerce03.web.controller.product;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.wish.entity.Wish;
 import com.supercoding.commerce03.service.product.ProductService;
-import com.supercoding.commerce03.web.dto.product.DummyRequestDto;
-import com.supercoding.commerce03.web.dto.product.DummyStoreDto;
-import com.supercoding.commerce03.web.dto.product.GetRequestDto;
-import com.supercoding.commerce03.web.dto.product.GetResponseDto;
+import com.supercoding.commerce03.web.dto.product.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -80,16 +77,25 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    /**
+     * 유저의 관심상품 조회
+     * @return
+     */
     @GetMapping("/product/wish")
     public ResponseEntity<List<Wish>> getWishList(){
         //TODO: 로그인한 유저정보 가져오기
         //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         //String email = authentication.getName();
-        int userId = 1;
+        long userId = 1L;
         List<Wish> wishList = productService.getWishList(userId);
         return ResponseEntity.ok(wishList);
     }
 
+    /**
+     * 관심상품 등록
+     * @param productId
+     * @return
+     */
     @PostMapping("/product/wish/{productId}")
     public ResponseEntity<Wish> addWishList(
             @PathVariable Integer productId
@@ -97,37 +103,26 @@ public class ProductController {
         //TODO: 로그인한 유저정보 가져오기
         //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         //String email = authentication.getName();
-        int userId = 1;
-        Wish wish = productService.addWishList((long)userId, (long)productId);
+        long userId = 1L;
+        Wish wish = productService.addWishList(userId, (long)productId);
         return ResponseEntity.ok(wish);
     }
 
+    /**
+     * 관심상품 삭제
+     * @param productId
+     * @return
+     */
     @DeleteMapping("/product/wish/{productId}")
-
-
-    @PostMapping("/dummy")
-    @ResponseBody
-    public String createDummy(@RequestBody DummyRequestDto dummyRequestDto){
-        try {
-            productService.handleDummyInsertion(dummyRequestDto);
-            return String.valueOf(new ResponseEntity<>("Success", HttpStatus.OK));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return String.valueOf(new ResponseEntity<>("Failed", HttpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
-
-    @PostMapping("/dummy/store")
-    @ResponseBody
-    public String createDummyStore(@RequestBody DummyStoreDto dummyStoreDto){
-        System.out.println(dummyStoreDto);
-        try {
-            productService.handleDummyStore(dummyStoreDto);
-            return String.valueOf(new ResponseEntity<>("Success", HttpStatus.OK));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return String.valueOf(new ResponseEntity<>("Failed", HttpStatus.INTERNAL_SERVER_ERROR));
-        }
+    public ResponseEntity<ResponseMessageDto> deleteWishList(
+            @PathVariable Integer productId
+    ){
+        //TODO: 로그인한 유저정보 가져오기
+        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        //String email = authentication.getName();
+        long userId = 1L;
+        productService.deleteWishList(userId, (long)productId);
+        return ResponseEntity.ok(new ResponseMessageDto("관심상품 삭제됨"));
     }
 
 }

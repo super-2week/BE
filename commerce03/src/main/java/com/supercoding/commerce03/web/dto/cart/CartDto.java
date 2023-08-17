@@ -29,10 +29,11 @@ public class CartDto {
 	public static CartDto fromEntity(Cart cart){
 		Product product = cart.getProduct();
 		return CartDto.builder()
-				.userId(cart.getId())
+				.userId(cart.getUser().getId())
 				.cartId(cart.getId())
 				.productId(product.getId())
 				.productName(product.getProductName())
+				.price(product.getPrice())
 				.imageUrl(product.getImageUrl())
 				.quantity(cart.getQuantity())
 				.total(product.getPrice() * cart.getQuantity())
