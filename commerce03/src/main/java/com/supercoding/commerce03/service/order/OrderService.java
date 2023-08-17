@@ -202,6 +202,19 @@ public class OrderService {
         return orderListResponsePage;
     }
 
+    @Transactional
+    public String deleteOneInOrderList(String orderId) {
+        Long longOrderId = Long.valueOf(orderId);
+        Order orderToDeleted = orderRepository.findById(longOrderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+        orderToDeleted.setIsDeleted(true);
+        orderToDeleted.setModifiedAt(LocalDateTime.now());
+
+        orderRepository.save(orderToDeleted);
+
+        return "요청하신 orderId " + orderId + "의 주문 내역이 삭제되었습니다.";
+    }
+
 
 
 }
