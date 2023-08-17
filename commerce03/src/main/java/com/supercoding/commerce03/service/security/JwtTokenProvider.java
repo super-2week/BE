@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.service.security;
 
 import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
     private static final String SECRET_KEY = "dSa2Hased =";
 
-    public static String createToken(User user) {
+    public static String createToken(User user, UserDetail userDetail) {
         // 토큰의 만료 날짜 설정
         Date expiryDate = Date.from(
             Instant.now()
@@ -24,7 +25,7 @@ public class JwtTokenProvider {
         // JWT 클레임 설정
         Claims claims = Jwts.claims();
         claims.put("userId", user.getId());//사용자 정보 담기
-        claims.put("email", user.getUserDetail().getEmail());//아이디 추가 보통 아이디,식별값 정도면 충분함
+        claims.put("email", userDetail.getEmail());//아이디 추가 보통 아이디,식별값 정도면 충분함
 
         // JWT 토큰 생성 및 반환(사용자 ID, 이름)
         return Jwts.builder()
