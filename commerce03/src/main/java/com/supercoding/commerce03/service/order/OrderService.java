@@ -15,11 +15,14 @@ import com.supercoding.commerce03.service.order.mapper.OrderMapper;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -110,8 +113,8 @@ public class OrderService {
                 });
 
         // orderedProducts dto list 생성
-        List<OrderDto.OrderProductResponse> orderedProducts = orderDetailRepository.findOrderDetailsByOrder(order).stream()
-                .map(orderDetail -> OrderDto.OrderProductResponse.builder()
+        List<OrderDto.ResponseOrderProduct> orderedProducts = orderDetailRepository.findOrderDetailsByOrder(order).stream()
+                .map(orderDetail -> OrderDto.ResponseOrderProduct.builder()
                         .id(orderDetail.getProduct().getId())
                         .productName(orderDetail.getProduct().getProductName())
                         .amount(orderDetail.getAmount())
@@ -168,6 +171,35 @@ public class OrderService {
 
         return orderCancelResponse;
 
+    }
+
+    public Page<OrderDto.OrderListResponse> orderList(String userId,  Pageable pageable) {
+        Long longUserId = Long.valueOf(userId);
+
+        User user = userRepository.findById(longUserId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.USER_NOT_FOUND));
+
+        // 에러가 잡힐줄 알았는데 안잡히네?!?!?
+        Page<Order> orders = orderRepository.findAllByUser(user, pageable)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.NEVER_ORDERED_BEFORE));
+        //가독성 위해 변경할 Refactoring 할 필요성. TODO
+        Page<OrderDto.OrderListResponse> orderListResponsePage
+                = orders.map(order-> OrderDto.OrderListResponse
+                .builder()
+                .status(order.getStatus())
+                .orderedProducts(orderDetailRepository.findOrderDetailsByOrder(order).stream()
+                        .map(orderDetail -> OrderDto.ResponseOrderProduct.builder()
+                                .id(orderDetail.getProduct().getId())
+                                .productName(orderDetail.getProduct().getProductName())
+                                .amount(orderDetail.getAmount())
+                                .price(orderDetail.getProduct().getPrice())
+                                .imgUrl(orderDetail.getProduct().getImageUrl())
+                                .build()
+                        ).collect(Collectors.toList()))
+                .orderedDate(order.getOrderedAt())
+                .build() );
+
+        return orderListResponsePage;
     }
 
 

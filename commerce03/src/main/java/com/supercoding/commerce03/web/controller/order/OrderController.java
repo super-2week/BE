@@ -4,6 +4,8 @@ import com.supercoding.commerce03.service.order.OrderService;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,15 +16,16 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class OrderController {
     private final OrderService orderService;
+
     //주문하기(결제)
     @PostMapping("")
     public ResponseEntity<?> orderRegister(
             @RequestBody OrderDto.OrderRegisterRequest orderRegisterRequest
-            ){
+    ) {
         //TODO : 임시 유저 정보 실제 정보 받아와서 바꿔야함.
         String userId = "1";
         OrderDto.OrderRegisterResponse orderResponse
-                = orderService.orderRegister(userId,orderRegisterRequest);
+                = orderService.orderRegister(userId, orderRegisterRequest);
         return ResponseEntity.ok(orderResponse);
     }
 
@@ -36,6 +39,19 @@ public class OrderController {
                 = orderService.orderCancel(userId, orderId);
 
         return ResponseEntity.ok(orderCancelResponse);
-
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> orderList(
+            Pageable pageable
+    ){
+        //TODO : 임시 유저 정보 실제 정보 받아와서 바꿔야함.
+        String userId = "2";
+
+        Page<OrderDto.OrderListResponse> orderListResponsePage
+                = orderService.orderList(userId,pageable);
+
+        return ResponseEntity.ok(orderListResponsePage);
+    }
+
 }
