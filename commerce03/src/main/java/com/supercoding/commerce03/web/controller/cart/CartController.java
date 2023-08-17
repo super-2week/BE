@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -51,11 +52,12 @@ public class CartController {
 
 	@GetMapping
 	public ResponseEntity<Page<GetCart.Response>> get(
-			Pageable pageable
+			@RequestParam(defaultValue = "0") Long cursor,
+			@RequestParam(defaultValue = "10") Integer pageSize
 	){
 			Long userId = 1L;
 			return ResponseEntity.ok(
-					cartService.getCart(userId, pageable).map(GetCart.Response::from)
+					cartService.getCart(userId, cursor, pageSize).map(GetCart.Response::from)
 			);
 	}
 

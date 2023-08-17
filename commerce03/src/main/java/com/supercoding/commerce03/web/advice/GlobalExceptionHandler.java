@@ -3,8 +3,11 @@ package com.supercoding.commerce03.web.advice;
 import static com.supercoding.commerce03.service.cart.exception.CartErrorCode.OUT_OF_STOCK;
 import static com.supercoding.commerce03.service.cart.exception.CartErrorCode.PRODUCT_ALREADY_EXISTS;
 
+import com.supercoding.commerce03.repository.order.entity.Order;
 import com.supercoding.commerce03.service.cart.exception.CartErrorResponse;
 import com.supercoding.commerce03.service.cart.exception.CartException;
+import com.supercoding.commerce03.service.order.exception.OrderErrorResponse;
+import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.web.advice.exception.ErrorResponse;
 import com.supercoding.commerce03.web.advice.exception.type.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,16 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
 				.body(CartErrorResponse.builder()
+						.errorCode(e.getErrorCode())
+						.errorMessage(e.getErrorMessage())
+						.build());
+
+	}
+	@ExceptionHandler(OrderException.class)
+	public ResponseEntity<?> handleOrderException(OrderException e){
+
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+				.body(OrderErrorResponse.builder()
 						.errorCode(e.getErrorCode())
 						.errorMessage(e.getErrorMessage())
 						.build());
