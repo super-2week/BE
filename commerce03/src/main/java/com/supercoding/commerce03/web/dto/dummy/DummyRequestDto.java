@@ -1,11 +1,14 @@
-package com.supercoding.commerce03.web.dto.product;
+package com.supercoding.commerce03.web.dto.dummy;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -22,6 +25,7 @@ public class DummyRequestDto {
     private int wishCount;
 
     public DummyRequestDto(JSONObject dummyJson) {
+        this.storeId = dummyJson.getInt("storeId");
         this.imageUrl = dummyJson.getString("imageUrl");
         this.animalCategory = dummyJson.getInt("animalCategory");
         this.productCategory = dummyJson.getInt("productCategory");
@@ -30,6 +34,25 @@ public class DummyRequestDto {
         this.description = dummyJson.getString("description");
         this.stock = dummyJson.getInt("stock");
         this.wishCount = dummyJson.getInt("wishCount");
+    }
+
+
+    public static List<DummyRequestDto> fromJsonArray(JSONObject jsonObject) {
+        JSONArray jsonArray  = jsonObject.getJSONArray("products");
+        List<DummyRequestDto> dtoList = new ArrayList<>();
+
+        for (Object o : jsonArray) {
+            DummyRequestDto dto = new DummyRequestDto((JSONObject) o);
+            dtoList.add(dto);
+        }
+
+//        for (int i = 0; i < jsonArray.length(); i++) {
+//            JSONObject jsonObject = jsonArray.getJSONObject(i);
+//            DummyRequestDto dto = new DummyRequestDto(jsonObject);
+//            dtoList.add(dto);
+//        }
+
+        return dtoList;
     }
 
 }

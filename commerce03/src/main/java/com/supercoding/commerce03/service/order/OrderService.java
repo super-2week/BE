@@ -74,6 +74,8 @@ public class OrderService {
         order.setStatus("결제 대기");
 
 
+
+
         // TODO : 저장 했다면 ? -> 결제 service 의 금액 차감(결제 로직)
 //        금액 차감할 때, 금액 부족한 경우, => Exception // new OrderException(OrderErrorCode.LACK_OF_POINT));
 
@@ -82,6 +84,7 @@ public class OrderService {
         List<ProductAndOrderAmount> productAndOrderAmounts
                 = orderRegisterRequest.getProducts().stream()
                 .map(orderProductRequest ->
+
                         ProductAndOrderAmount.builder()
                                 .product(validProduct(orderProductRequest.getId()))
                                 .amount(orderProductRequest.getAmount())
@@ -100,6 +103,7 @@ public class OrderService {
                         order.setStatus("결제 완료");
                         log.info("stock : " + productChangingAmount.getStock());
                     } else {
+
                         //TODO : 결제 취소 로직 추가
                         throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
                     }
@@ -138,6 +142,7 @@ public class OrderService {
         return product;
     }
 
+
     @Transactional
     public OrderDto.OrderCancelResponse orderCancel(String userId, String orderId) {
         //user userId로 객체 가져오기
@@ -164,6 +169,7 @@ public class OrderService {
         return orderCancelResponse;
 
     }
+
 
 
 }
