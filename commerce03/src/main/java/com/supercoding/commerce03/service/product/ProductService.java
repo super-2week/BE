@@ -34,6 +34,7 @@ public class ProductService {
 
         String query =
                 "SELECT p FROM Product p " +
+                "LEFT JOIN FETCH p.store " +
                 "WHERE p.animalCategory = :animalCategory " +
                 "AND p.productCategory = :productCategory ";
 
@@ -52,7 +53,7 @@ public class ProductService {
             query += "ORDER BY p.price ASC";
         }
 
-        Query jpqlQuery = entityManager.createQuery(query, Product.class);
+        TypedQuery<Product> jpqlQuery = entityManager.createQuery(query, Product.class);
         jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
         jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
         if(searchWord != null && !searchWord.isEmpty()) {
@@ -141,14 +142,14 @@ public class ProductService {
     }
 
     @Transactional
-    public Product getProduct(Integer productId) {
+    public List<Product> getProduct(Integer productId) {
 
         try {
-            String query = "SELECT p FROM Product p WHERE p.id = :productId";
+            String query = "SELECT p FROM Product p LEFT JOIN FETCH p.store WHERE p.id = :productId";
             TypedQuery<Product> jpqlQuery = entityManager.createQuery(query, Product.class);
             jpqlQuery.setParameter("productId", (long)productId);
 
-            return jpqlQuery.getSingleResult();
+            return jpqlQuery.getResultList();
         } catch (NoResultException e) {
             //TODO : Exception 만들기
 

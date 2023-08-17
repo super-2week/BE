@@ -4,8 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "8080:8080"
-      - "3306:3306"
+      - "3306:8080"
     env_file:
       - .env

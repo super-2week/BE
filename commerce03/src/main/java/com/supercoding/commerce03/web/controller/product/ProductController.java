@@ -122,12 +122,12 @@ public class ProductController {
      * @param productId
      * @return
      */
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<Product> getProduct(
+    @GetMapping("v1/api/product/{productId}")
+    public ResponseEntity<List<Product>> getProduct(
             @PathVariable Integer productId
 
     ) {
-        Product product = productService.getProduct(productId);
+        List<Product> product = productService.getProduct(productId);
         return ResponseEntity.ok(product);
     }
 
