@@ -84,24 +84,26 @@ public class OrderService {
         List<ProductAndOrderAmount> productAndOrderAmounts
                 = orderRegisterRequest.getProducts().stream()
                 .map(orderProductRequest ->
-                    ProductAndOrderAmount.builder()
-                            .product(validProduct(orderProductRequest.getId()))
-                            .amount(orderProductRequest.getAmount())
-                            .build()
+
+                        ProductAndOrderAmount.builder()
+                                .product(validProduct(orderProductRequest.getId()))
+                                .amount(orderProductRequest.getAmount())
+                                .build()
                 ).collect(Collectors.toList());
 
         productAndOrderAmounts.stream()
-                .forEach((productAndOrderAmount)->{
+                .forEach((productAndOrderAmount) -> {
                     Product productChangingAmount
                             = productRepository.findById(productAndOrderAmount.getProduct().getId())
-                            .orElseThrow(()->new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
+                            .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
                     Integer stockToChange = productChangingAmount.getStock() - productAndOrderAmount.getAmount();
-                    if(stockToChange >=0){
+                    if (stockToChange >= 0) {
                         productChangingAmount.setStock(stockToChange);
                         productRepository.save(productChangingAmount);
                         order.setStatus("결제 완료");
-                        log.info("stock : "+productChangingAmount.getStock());
-                    }else{
+                        log.info("stock : " + productChangingAmount.getStock());
+                    } else {
+
                         //TODO : 결제 취소 로직 추가
                         throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
                     }
@@ -139,6 +141,35 @@ public class OrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
         return product;
     }
+
+
+    @Transactional
+    public OrderDto.OrderCancelResponse orderCancel(String userId, String orderId) {
+        //user userId로 객체 가져오기
+        User user = userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new OrderException(OrderErrorCode.USER_NOT_FOUND));
+        //Order 가져오기
+        Long longOrderId = Long.valueOf(orderId);
+        Order order = orderRepository.findById(longOrderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        // TODO : 주문 취소 로직
+        order.setStatus("결제 취소");
+
+        // 주문 취소 ( 주문 테이블 주문 취소, 주문 상세 삭제)
+        List<OrderDetail> orderDetailsToDeleted = orderDetailRepository.findOrderDetailsByOrder(order);
+        orderDetailsToDeleted.stream().forEach((orderDetail -> orderDetail.setIsDeleted(true)));
+        order.setStatus("주문 취소");
+
+        orderRepository.save(order);
+
+        OrderDto.OrderCancelResponse orderCancelResponse
+                = new OrderDto.OrderCancelResponse("주문이 정상적으로 취소 되었습니다.");
+
+        return orderCancelResponse;
+
+    }
+
 
 
 }

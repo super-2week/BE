@@ -65,7 +65,14 @@ public class OrderDto {
         //배송 요청 사항
         private String postComment;
         private List<OrderProductResponse> orderedProducts;
+    }
 
-
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class OrderCancelResponse{
+        private String message;
     }
 }
