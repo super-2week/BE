@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -45,6 +46,7 @@ public class OrderDto {
         private String productName;
         private Integer price;
         private Integer amount;
+        private String imgUrl;
     }
 
     @Getter
@@ -76,4 +78,16 @@ public class OrderDto {
     public static class OrderCancelResponse{
         private String message;
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class OrderListResponse{
+        private String status;
+        private LocalDateTime orderedDate;
+        private List<ResponseOrderProduct> orderedProducts;
+    }
+
 }
