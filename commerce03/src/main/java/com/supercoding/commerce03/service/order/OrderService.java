@@ -106,8 +106,8 @@ public class OrderService {
                 });
 
         // orderedProducts dto list 생성
-        List<OrderDto.OrderProductResponse> orderedProducts = orderDetailRepository.findOrderDetailsByOrder(order).stream()
-                .map(orderDetail -> OrderDto.OrderProductResponse.builder()
+        List<OrderDto.ResponseOrderProduct> orderedProducts = orderDetailRepository.findOrderDetailsByOrder(order).stream()
+                .map(orderDetail -> OrderDto.ResponseOrderProduct.builder()
                         .id(orderDetail.getProduct().getId())
                         .productName(orderDetail.getProduct().getProductName())
                         .amount(orderDetail.getAmount())
