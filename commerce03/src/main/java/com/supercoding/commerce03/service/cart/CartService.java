@@ -10,13 +10,10 @@ import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
 import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.web.dto.cart.AddCart;
 import com.supercoding.commerce03.web.dto.cart.CartDto;
-import com.supercoding.commerce03.web.dto.cart.RemoveCart;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,10 +63,11 @@ public class CartService {
 		return CartDto.fromEntity(validatedCart);
 	}
 
-	public Page<CartDto> getCart(Long userId, Pageable pageable){
+	public Page<CartDto> getCart(Long userId, Long cursor, Integer pageSize){
 
 		validateUser(userId);
-		Page<Cart> carts = cartRepository.findAllByUserIdAndIsDeleted(userId, false, pageable);
+		Page<Cart> carts = cartRepository.findAllByUserIdAndIsDeletedWithCursor(
+				userId, false, cursor, PageRequest.of(0, pageSize));
 		return carts.map(CartDto::fromEntity);
 	}
 
