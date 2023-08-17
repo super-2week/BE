@@ -12,6 +12,7 @@ public enum UserErrorCode {
     EMAIL_DUPLICATION( "이미 등록된 이메일입니다.",HttpStatus.BAD_REQUEST),
     INVALID_PHONE_NUMBER_PATTERN("비밀번호는 특수문자를 1개이상 포함해야 합니다.",HttpStatus.BAD_REQUEST),
     INVALID_PHONE_NUMBER("비밀번호는 8자리 이상이여야 합니다.",HttpStatus.BAD_REQUEST),
+    MISMATCH_PASSWORD("비밀번호를 똑같이 입력 해주세요.",HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD("올바르지 않은 비밀번호 양식 입니다.",HttpStatus.BAD_REQUEST),
     INVALID_LOGIN_INPUT("해당 회원은 없습니다 다시 한번 입력 해줏세요 ",HttpStatus.BAD_REQUEST),
     //status(HttpStatus.NOT_FOUND) 404

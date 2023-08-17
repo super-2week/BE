@@ -1,6 +1,5 @@
 package com.supercoding.commerce03.web.controller.user;
 
-import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import com.supercoding.commerce03.service.user.UserService;
 import com.supercoding.commerce03.web.dto.user.Login;
 import com.supercoding.commerce03.web.dto.user.SignUp;
@@ -24,10 +23,8 @@ public class UserController {
     public ResponseEntity<Object> signUp(@RequestBody SignUp signUp) {
         return ResponseEntity.ok(userService.signUp(signUp));
     }
-
     @PostMapping("/signin")
     public ResponseEntity<Login.Response> login(@RequestBody Login.Request loginRequest) {
-
 
         return ResponseEntity.ok(userService.login(loginRequest));
     }

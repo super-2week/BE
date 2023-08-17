@@ -29,6 +29,7 @@ public class UserService {
         emailDuplicate(signUp.getEmail());
         validatedPhoneNumber(signUp.getPhoneNumber());
         validatedPassword(signUp.getPassword());
+        checkPassword(signUp.getPassword(),signUp.getCheckPassword());
 
    //검증된 정보들
 
@@ -57,6 +58,11 @@ public class UserService {
         }
         if(!password.matches("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$")){
             throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_PATTERN);
+        }
+    }
+    public void checkPassword(String password ,String checkPassword){
+        if(!password.equals(checkPassword)){
+            throw new UserException(UserErrorCode.MISMATCH_PASSWORD);
         }
     }
 
