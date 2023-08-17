@@ -23,6 +23,7 @@ public class DummyRequestDto {
     private String description;
     private int stock;
     private int wishCount;
+    private int purchaseCount;
 
     public DummyRequestDto(JSONObject dummyJson) {
         this.storeId = dummyJson.getInt("storeId");
@@ -34,6 +35,7 @@ public class DummyRequestDto {
         this.description = dummyJson.getString("description");
         this.stock = dummyJson.getInt("stock");
         this.wishCount = dummyJson.getInt("wishCount");
+        this.purchaseCount = dummyJson.getInt("purchaseCount");
     }
 
 

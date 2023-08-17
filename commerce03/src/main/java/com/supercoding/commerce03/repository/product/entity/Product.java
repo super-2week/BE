@@ -55,11 +55,14 @@ public class Product {
 	@Column(name = "description", nullable = false, length = 100)
 	private String description;
 
-	@Column(name = "stock", nullable = false)
+	@Column(name = "stock", nullable = false, columnDefinition = "int default 0")
 	private Integer stock;
 
-	@Column(name = "wish_count", nullable = false)
+	@Column(name = "wish_count", nullable = false, columnDefinition = "int default 0")
 	private Integer wishCount;
+
+	@Column(name = "purchase_count", nullable = false, columnDefinition = "int default 0")
+	private Integer purchaseCount;
 
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;

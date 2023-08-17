@@ -67,6 +67,7 @@ public class DummyController {
                         .description(dto.getDescription())
                         .stock(dto.getStock())
                         .wishCount(dto.getWishCount())
+                        .purchaseCount(dto.getPurchaseCount())
                         .createdAt(LocalDateTime.now())
                         .build();
                 productBatch.add(product);
