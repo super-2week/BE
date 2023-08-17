@@ -1,6 +1,6 @@
 package com.supercoding.commerce03.repository.user.entity;
 
-import com.supercoding.commerce03.repository.payment.entity.Payment;
+import com.supercoding.commerce03.web.dto.user.SignUp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,11 +9,19 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Table(name = "User_Details")
 @Entity
+@Builder
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDetail {
 
 	@Id
@@ -22,12 +30,8 @@ public class UserDetail {
 	private Long id;
 
 	@OneToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id")
 	private User user;
-
-	@OneToOne
-	@JoinColumn(name = "payment_id", nullable = false)
-	private Payment payment;
 
 	@Column(name = "password", nullable = false)
 	private String password;
@@ -40,4 +44,16 @@ public class UserDetail {
 
 	@Column(name = "email", nullable = false)
 	private String email;
+
+
+	public static UserDetail toEntity(User user, SignUp signUp,String passwordEncode){
+		return UserDetail.builder()
+			.email(signUp.getEmail())
+			.password(passwordEncode)
+			.address(signUp.getAddress())
+			.phoneNumber(signUp.getPhoneNumber())
+			.user(user)
+			.build();
+	}
 }
+
