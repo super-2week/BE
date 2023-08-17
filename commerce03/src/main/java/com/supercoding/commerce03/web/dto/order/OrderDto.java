@@ -65,6 +65,7 @@ public class OrderDto {
         //배송 요청 사항
         private String postComment;
         private List<ResponseOrderProduct> orderedProducts;
+    }
 
 
     @Getter
