@@ -84,4 +84,15 @@ public class UserService {
     public String makeLoginResponse(User user,UserDetail loginUser){
         return JwtTokenProvider.createToken(user,loginUser);
     }
+
+    public UserDetail getLoginUser(String userEmail) {
+        if(userEmail == null){
+            throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
+        }
+        Optional<UserDetail>optionalUserDetail = userDetailRepository.findByEmail(userEmail);
+        if(optionalUserDetail.isEmpty()){
+            throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
+        }
+        return optionalUserDetail.get();
+    }
 }
