@@ -12,7 +12,7 @@ public class OrderDto {
     @Getter
     @AllArgsConstructor
     @ToString
-    public static class OrderProductRequest{
+    public static class RequestOrderProduct{
         private Long id;
         private Integer price;
         private Integer amount;
@@ -32,7 +32,7 @@ public class OrderDto {
         //배송 요청 사항
         private String postComment;
         //주문 아이템들
-        private List<OrderProductRequest> products;
+        private List<RequestOrderProduct> products;
     }
 
     @Getter
@@ -40,7 +40,7 @@ public class OrderDto {
     @Builder
     @AllArgsConstructor
     @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
-    public static class OrderProductResponse{
+    public static class ResponseOrderProduct{
         private Long id;
         private String productName;
         private Integer price;
@@ -64,8 +64,8 @@ public class OrderDto {
         private String phoneNumber;
         //배송 요청 사항
         private String postComment;
-        private List<OrderProductResponse> orderedProducts;
-    }
+        private List<ResponseOrderProduct> orderedProducts;
+
 
     @Getter
     @Setter
