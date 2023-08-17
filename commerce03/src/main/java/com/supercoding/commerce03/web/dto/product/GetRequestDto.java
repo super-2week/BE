@@ -17,6 +17,15 @@ public class GetRequestDto {
         this.sortBy = sortByConvert(sortBy);
     }
 
+    public GetRequestDto(String animalCategory) {
+        this.animalCategory = animalCategoryConvert(animalCategory);
+    }
+
+    public GetRequestDto(String animalCategory, String productCategory) {
+        this.animalCategory = animalCategoryConvert(animalCategory);
+        this.productCategory = productCategoryConvert(productCategory);
+    }
+
     public Integer animalCategoryConvert(String animalCategory) {
         if (animalCategory == null) {
             return 1; // 기본값 설정 또는 다른 로직 추가

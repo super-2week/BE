@@ -11,8 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,6 +23,68 @@ public class ProductController {
 
     /**
      * 메인페이지
+     * @return 카테고리 정보 응답
+     */
+    @GetMapping("/")
+    public ResponseEntity<Map<String, Map<String, String>>> getIndex(){
+        Map<String, Map<String, String>> response = productService.getIndex();
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 메인페이지 배너상품 리스트
+     * @param animalCategory
+     * @return
+     */
+    @GetMapping("/banner/{animalCategory}")
+    public ResponseEntity<List<ProductDto>> getBanner(
+            @PathVariable(required = false) String animalCategory
+    ){
+        GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
+        log.info("배너상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
+
+        List<ProductDto> purchasedList = productService.getMostPurchasedTree(getRequestDto);
+        return ResponseEntity.ok(purchasedList);
+    }
+
+    /**
+     * 메인페이지 인기상품 TOP10
+     * @param animalCategory
+     * @param productCategory
+     * @return
+     */
+    @GetMapping("/popular/{animalCategory}/{productCategory}")
+    public ResponseEntity<List<ProductDto>> getPopular(
+            @PathVariable(required = false) String animalCategory,
+            @PathVariable(required = false) String productCategory
+    ){
+        GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory);
+        log.info("인기상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
+        log.info("인기상품 용품분류: " + animalCategory + getRequestDto.getProductCategory());
+
+        //해당 카테고리 인기 Top10
+        List<ProductDto> popularList = productService.getPopularTen(getRequestDto);
+        return ResponseEntity.ok(popularList);
+    }
+
+    /**
+     * 메인페이지 오늘의 추천상품
+     * @param animalCategory
+     * @return
+     */
+    @GetMapping("/recommend/{animalCategory}")
+    public ResponseEntity<List<ProductDto>> getRecommends(
+            @PathVariable(required = false) String animalCategory
+    ){
+        GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
+        log.info("추천상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
+        //해당 카테고리 추천 상품 3종
+        List<ProductDto> recommendList = productService.getRecommendThree(getRequestDto);
+        return ResponseEntity.ok(recommendList);
+    }
+
+    /**
+     * 상품 리스트 페이지
      * @param animalCategory
      * @param productCategory
      * @param sortBy
@@ -31,11 +93,10 @@ public class ProductController {
      * @return
      */
     @GetMapping(value={
-            "/",
-            "/{animalCategory}" ,
-            "/{animalCategory}/{productCategory}",
-            "/{animalCategory}/{productCategory}/{sortBy}"})
-    public ResponseEntity<GetResponseDto> getProducts(
+            "/product/{animalCategory}" ,
+            "/product/{animalCategory}/{productCategory}",
+            "/product/{animalCategory}/{productCategory}/{sortBy}"})
+    public ResponseEntity<List<Product>> getProducts(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -53,14 +114,7 @@ public class ProductController {
         //메인페이지 상품리스트
         List<Product> products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
 
-        //해당 카테고리 인기 Top10
-        List<Product> popularList = productService.getPopularTen(getRequestDto);
-
-        //해당 카테고리 추천 상품 3종
-        List<Product> recommendList = productService.getRecommendThree(getRequestDto);
-
-        GetResponseDto response = new GetResponseDto(products, popularList, recommendList);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(products);
     }
 
     /**
