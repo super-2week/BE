@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,14 +37,14 @@ public class CartController {
 			);
 	}
 
-	@DeleteMapping
+	@DeleteMapping("/{cartId}")
 	public ResponseEntity<RemoveCart.Response> remove(
-			@RequestBody RemoveCart.Request request
+			@PathVariable("cartId") Long cartId
 	){
 			Long userId = 1L;
 			return ResponseEntity.ok(
 					RemoveCart.Response.from(
-							cartService.removeFromCart(request, userId)
+							cartService.removeFromCart(cartId, userId)
 					)
 			);
 	}
