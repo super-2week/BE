@@ -10,9 +10,11 @@ import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
 import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.web.dto.cart.AddCart;
 import com.supercoding.commerce03.web.dto.cart.CartDto;
+import com.supercoding.commerce03.web.dto.cart.RemoveCart;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class CartService {
 	private final CartRepository cartRepository;
 	private final UserRepository userRepository;
 
+	@Transactional
 	public CartDto addToCart(AddCart.Request request, Long userId){
 
 		Long inputProductId = request.getProductId();
@@ -42,9 +45,23 @@ public class CartService {
 								.user(validatedUser)
 								.product(validatedProduct)
 								.quantity(inputQuantity)
+								.isDeleted(false)
 								.build()
 				)
 		);
+	}
+
+	@Transactional
+	public CartDto removeFromCart(RemoveCart.Request request, Long userId){
+
+		Long inputCartId = request.getCartId();
+
+		validateUser(userId);
+		Cart validatedCart = validateCart(inputCartId, userId);
+
+		validatedCart.setIsDeleted(true);
+
+		return CartDto.fromEntity(validatedCart);
 	}
 
 	private User validateUser(Long userId){
@@ -70,7 +87,17 @@ public class CartService {
 		return product;
 	}
 
+	private Cart validateCart(Long cartId, Long userId){
+		Cart cart = cartRepository.findByIdAndUserIdAndIsDeleted(cartId, userId, false);
+
+		if (cart == null) {
+			throw new CartException(CartErrorCode.THIS_CART_DOES_NOT_EXIST);
+		}
+
+		return cart;
+	}
+
 	private boolean existsInCart(Long userId, Long productId){
-		return cartRepository.existsByUserIdAndProductId(userId, productId);
+		return cartRepository.existsByUserIdAndProductIdAndIsDeleted(userId, productId, false);
 	}
 }

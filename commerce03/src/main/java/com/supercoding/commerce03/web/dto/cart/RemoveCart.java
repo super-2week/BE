@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AddCart {
+public class RemoveCart {
 
 	@Setter
 	@Getter
@@ -17,8 +17,7 @@ public class AddCart {
 	@Builder
 	public static class Request {
 
-		private Long productId;
-		private Integer quantity;
+		private Long cartId;
 	}
 
 	@Setter
@@ -28,17 +27,13 @@ public class AddCart {
 	@Builder
 	public static class Response {
 
-		private Long cartId;
 		private Long productId;
 		private String productName;
-		private Integer quantity;
 
-		public static Response from(CartDto cartDto) {
+		public static Response from(CartDto cartDto){
 			return Response.builder()
-					.cartId(cartDto.getCartId())
 					.productId(cartDto.getProductId())
 					.productName(cartDto.getProductName())
-					.quantity(cartDto.getQuantity())
 					.build();
 		}
 	}

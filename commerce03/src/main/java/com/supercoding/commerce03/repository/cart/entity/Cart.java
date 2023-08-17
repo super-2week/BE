@@ -41,4 +41,7 @@ public class Cart {
 
 	@Column(name = "quantity")
 	private Integer quantity;
+
+	@Column(name = "is_deleted")
+	private Boolean isDeleted;
 }

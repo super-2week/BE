@@ -14,7 +14,7 @@ public class GetRequestDto {
     public GetRequestDto(String animalCategory, String productCategory, String sortBy) {
         this.animalCategory = animalCategoryConvert(animalCategory);
         this.productCategory = productCategoryConvert(productCategory);
-        this.sortBy = sortBy;
+        this.sortBy = sortByConvert(sortBy);
     }
 
     public Integer animalCategoryConvert(String animalCategory) {
@@ -57,9 +57,27 @@ public class GetRequestDto {
             default:
                 return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
         }
+
     }
 
+    public String sortByConvert(String sortBy) {
+        if (sortBy == null) {
+            return "price";
+        }
 
+        switch (sortBy) {
+            case "price":
+                return "price";
+            case "createdAt":
+                return "createdAt";
+            case "popular":
+                return "wishCount";
+            default:
+                return "price"; // 또는 다른 기본값 또는 에러 처리 로직 추가
+        }
+
+
+    }
 }
 
 

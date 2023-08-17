@@ -67,5 +67,12 @@ public class OrderDto {
         private List<ResponseOrderProduct> orderedProducts;
 
 
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class OrderCancelResponse{
+        private String message;
     }
 }

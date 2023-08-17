@@ -1,17 +1,16 @@
 package com.supercoding.commerce03.repository.payment.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Payments")
@@ -27,17 +26,15 @@ public class Payment {
 	@Column(name = "payment_id", nullable = false)
 	private Integer id;
 
-	@Column(name = "created_at")
+	@OneToOne
+	@JoinColumn(name = "user_detail_id", nullable = false)
+	private UserDetail userDetail;
+
+	@Column(name = "created_at") // 페이충전일
 	@CreatedDate
-	private String created_at;
+	private LocalDateTime createdAt;
 
-	@Column(name = "total_payment", nullable = false)
+	@Column(name = "total_payment", nullable = false) // 페이보유액
 	private Integer totalPayment;
-
-	@Column(name = "order_id")
-	private Integer orderId;
-
-	@Column(name = "user_id")
-	private Integer userId;
 
 }
