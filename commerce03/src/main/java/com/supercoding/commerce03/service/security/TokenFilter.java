@@ -1,6 +1,6 @@
 package com.supercoding.commerce03.service.security;
 
-import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import com.supercoding.commerce03.service.user.UserDetailService;
 import java.io.IOException;
 import java.util.List;
@@ -47,10 +47,10 @@ public class TokenFilter extends OncePerRequestFilter {
         //토큰으로 로그인 ID(이메일)을 가져오기
         String userEmail = String.valueOf(JwtTokenProvider.getLoginId(token));
         //가져온 사용자의 정보로 실제 사용자 정보를 가져오기
-        User loginUser = userDetailService.getLoginUser(userEmail);
+        UserDetail loginUser = userDetailService.getLoginUser(userEmail);
         //사용자 정보를 기반으로 인증 토큰 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            loginUser.getUserDetail().getEmail(), null, List.of(new SimpleGrantedAuthority("USER"))
+            loginUser.getEmail(), null, List.of(new SimpleGrantedAuthority("USER"))
         );
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
