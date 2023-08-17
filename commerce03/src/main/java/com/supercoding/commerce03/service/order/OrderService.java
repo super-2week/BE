@@ -5,6 +5,8 @@ import com.supercoding.commerce03.repository.order.OrderRepository;
 import com.supercoding.commerce03.repository.order.entity.Order;
 import com.supercoding.commerce03.repository.order.entity.OrderDetail;
 import com.supercoding.commerce03.repository.order.entity.ProductAndOrderAmount;
+import com.supercoding.commerce03.repository.payment.PaymentRepository;
+import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.user.UserRepository;
@@ -75,8 +77,6 @@ public class OrderService {
                 );
 
         order.setStatus("결제 대기");
-
-
 
 
         // TODO : 저장 했다면 ? -> 결제 service 의 금액 차감(결제 로직)
@@ -156,7 +156,7 @@ public class OrderService {
         Order order = orderRepository.findById(longOrderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
-        // TODO : 주문 취소 로직
+        // TODO : 결제 취소 로직
         order.setStatus("결제 취소");
 
         // 주문 취소 ( 주문 테이블 주문 취소, 주문 상세 삭제)
@@ -173,7 +173,7 @@ public class OrderService {
 
     }
 
-    public Page<OrderDto.OrderListResponse> orderList(String userId,  Pageable pageable) {
+    public Page<OrderDto.OrderListResponse> orderList(String userId, Pageable pageable) {
         Long longUserId = Long.valueOf(userId);
 
         User user = userRepository.findById(longUserId)
@@ -184,7 +184,7 @@ public class OrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.NEVER_ORDERED_BEFORE));
         //가독성 위해 변경할 Refactoring 할 필요성. TODO
         Page<OrderDto.OrderListResponse> orderListResponsePage
-                = orders.map(order-> OrderDto.OrderListResponse
+                = orders.map(order -> OrderDto.OrderListResponse
                 .builder()
                 .status(order.getStatus())
                 .orderedProducts(orderDetailRepository.findOrderDetailsByOrder(order).stream()
@@ -197,7 +197,7 @@ public class OrderService {
                                 .build()
                         ).collect(Collectors.toList()))
                 .orderedDate(order.getOrderedAt())
-                .build() );
+                .build());
 
         return orderListResponsePage;
     }
@@ -215,6 +215,37 @@ public class OrderService {
         return "요청하신 orderId " + orderId + "의 주문 내역이 삭제되었습니다.";
     }
 
+    public OrderDto.OrderRegisterResponse orderViewDetail(String orderId) {
+        Long longOrderedId = Long.valueOf(orderId);
+        Order order = orderRepository.findById(longOrderedId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        OrderDto.OrderRegisterResponse orderRegisterResponse
+                = OrderDto.OrderRegisterResponse.builder()
+                .orderId(longOrderedId)
+                .status(order.getStatus())
+                .totalAmount(order.getTotalAmount())
+                .recipient(order.getRecipient())
+                .address(order.getAddress())
+                .phoneNumber(order.getPhoneNumber())
+                .postComment(order.getPostComment())
+                .orderedProducts(orderDetailRepository.findOrderDetailsByOrder(order)
+                        .stream()
+                        .map(orderDetail -> OrderDto.ResponseOrderProduct
+                                .builder()
+                                .id(orderDetail.getId())
+                                .productName(orderDetail.getProduct().getProductName())
+                                .price(orderDetail.getPrice())
+                                .amount(orderDetail.getAmount())
+                                .imgUrl(orderDetail.getProduct().getImageUrl())
+                                .build()
+                        ).collect(Collectors.toList())
+                )
+                .build();
+
+        return orderRegisterResponse;
+
+    }
 
 
 }
