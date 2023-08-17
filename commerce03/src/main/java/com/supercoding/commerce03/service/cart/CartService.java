@@ -56,12 +56,10 @@ public class CartService {
 	}
 
 	@Transactional
-	public CartDto removeFromCart(RemoveCart.Request request, Long userId){
-
-		Long inputCartId = request.getCartId();
+	public CartDto removeFromCart(Long cartId, Long userId){
 
 		validateUser(userId);
-		Cart validatedCart = validateCart(inputCartId, userId);
+		Cart validatedCart = validateCart(cartId, userId);
 
 		validatedCart.setIsDeleted(true);
 

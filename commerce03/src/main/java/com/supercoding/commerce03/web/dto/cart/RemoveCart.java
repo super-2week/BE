@@ -6,19 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
+
 public class RemoveCart {
-
-	@Setter
-	@Getter
-	@AllArgsConstructor
-	@NoArgsConstructor
-	@Builder
-	public static class Request {
-
-		private Long cartId;
-	}
 
 	@Setter
 	@Getter
