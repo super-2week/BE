@@ -2,25 +2,18 @@ package com.supercoding.commerce03.service.product;
 
 import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
-import com.supercoding.commerce03.repository.store.entity.Store;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.repository.wish.WishRepository;
 import com.supercoding.commerce03.repository.wish.entity.Wish;
-import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
-import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.service.product.exception.ProductErrorCode;
 import com.supercoding.commerce03.service.product.exception.ProductException;
-import com.supercoding.commerce03.web.dto.product.DummyRequestDto;
-import com.supercoding.commerce03.web.dto.product.DummyStoreDto;
 import com.supercoding.commerce03.web.dto.product.GetRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -115,68 +108,12 @@ public class ProductService {
         }
     }
 
-    public void handleDummyStore(DummyStoreDto dummyStoreDto){
-        List<Store> stores = new ArrayList<>();
-        for (int i = 0; i < 10; i++) { // Create 500 products per DummyRequestDto
-            Store store = Store.builder()
-                    .storeName(dummyStoreDto.getStoreName())
-                    .contact(dummyStoreDto.getContact())
-                    .build();
-            stores.add(store);
-        }
-        bulkInsert2(stores);
-    }
-
-    public void handleDummyInsertion(DummyRequestDto dummyRequestDto) {
-
-        List<Product> products = new ArrayList<>();
-
-        for (int i = 0; i < 100; i++) { // Create 500 products per DummyRequestDto
-            Product product = Product.builder()
-                    .imageUrl(dummyRequestDto.getImageUrl())
-                    .animalCategory(dummyRequestDto.getAnimalCategory())
-                    .productCategory(dummyRequestDto.getProductCategory())
-                    .productName(dummyRequestDto.getProductName())
-                    .price(dummyRequestDto.getPrice())
-                    .description(dummyRequestDto.getDescription())
-                    .stock(dummyRequestDto.getStock())
-                    .wishCount(dummyRequestDto.getWishCount())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            products.add(product);
-        }
-
-        bulkInsert(products);
-
-    }
-
-    public void bulkInsert(List<Product> products) {
-        for (Product product : products) {
-            entityManager.persist(product);
-            if (product.getId() % 100 == 0) { // Flush and clear the persistence context every 50 records
-                entityManager.flush();
-                entityManager.clear();
-            }
-        }
-    }
-
-    public void bulkInsert2(List<Store> stores) {
-        for (Store store : stores) {
-            entityManager.persist(store);
-            if (store.getId() % 100 == 0) { // Flush and clear the persistence context every 50 records
-                entityManager.flush();
-                entityManager.clear();
-            }
-        }
-    }
-
-
-    public Wish addWishList(Long userId, Long productId) {
+    public Wish addWishList(long userId, long productId) {
         User validatedUser = validateUser(userId);
         Product validatedProduct = validateProduct(productId);
 
         if (existsInWishList(userId, productId)) {
-            throw new ProductException(ProductErrorCode.WISHLIST_ALREADY_EXISTS);
+            throw new ProductException(ProductErrorCode.ALREADY_EXISTS_IN_WISHLIST);
         }
 
         return wishRepository.save(
@@ -190,26 +127,34 @@ public class ProductService {
 
     }
 
-    public List<Wish> getWishList(int userId) {
-        User validatedUser = validateUser((long)userId);
-        return wishRepository.findByUser_Id(validatedUser.getId());
+    public List<Wish> getWishList(long userId) {
+        User validatedUser = validateUser(userId);
+        return wishRepository.findByUserId(validatedUser.getId()); //없으면 빈 배열을 반환해야 한다.
     }
 
-    private User validateUser(Long userId){
+    public void deleteWishList(long userId, long productId) {
+        Wish targetWish = wishRepository.findByUserIdAndProductId(userId, productId)
+                .orElseThrow(()->new ProductException(ProductErrorCode.NOT_FOUND_IN_WISHLIST)); //없으면 예외처리
+
+        wishRepository.delete(targetWish);
+    }
+
+    private User validateUser(long userId){
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.USER_NOT_FOUND));
     }
 
-    private Product validateProduct(Long productId){
+    private Product validateProduct(long productId){
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.THIS_PRODUCT_DOES_NOT_EXIST));
 
         return product;
     }
 
-    private boolean existsInWishList(Long userId, Long productId){
+    private boolean existsInWishList(long userId, long productId){
         return wishRepository.existsByUserIdAndProductId(userId, productId);
     }
+
 
 
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/api/order")
+
 @Slf4j
 public class OrderController {
     private final OrderService orderService;
@@ -52,4 +53,5 @@ public class OrderController {
 
         return ResponseEntity.ok(orderListResponsePage);
     }
+
 }
