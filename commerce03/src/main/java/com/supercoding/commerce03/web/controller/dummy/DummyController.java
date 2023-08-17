@@ -1,15 +1,15 @@
 package com.supercoding.commerce03.web.controller.dummy;
 
 import com.supercoding.commerce03.repository.product.entity.Product;
+import com.supercoding.commerce03.repository.store.StoreRepository;
 import com.supercoding.commerce03.repository.store.entity.Store;
-import com.supercoding.commerce03.service.product.ProductService;
-import com.supercoding.commerce03.web.dto.product.DummyRequestDto;
-import com.supercoding.commerce03.web.dto.product.DummyStoreDto;
+import com.supercoding.commerce03.web.dto.dummy.DummyRequestDto;
+import com.supercoding.commerce03.web.dto.dummy.DummyStoreDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,16 +20,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@Transactional
+//@Transactional
 public class DummyController {
+    private final StoreRepository storeRepository;
     private final EntityManager entityManager;
     private final List<Store> storeBatch = new ArrayList<>();
     private final List<Product> productBatch = new ArrayList<>();
@@ -37,25 +40,40 @@ public class DummyController {
 
     @PostMapping("/dummy")
     @ResponseBody
-    public ResponseEntity createDummy(@RequestBody DummyRequestDto dummyRequestDto) {
+    @Transactional
+    public ResponseEntity createDummy(
+//            HttpServletRequest request
+            @RequestBody Map<String, List<DummyRequestDto>> json
+    ) {
         try {
-            List<Product> products = new ArrayList<>();
+//            StringBuilder requestBody = new StringBuilder();
+//            BufferedReader reader = request.getReader();
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                requestBody.append(line);
+//            }
+//            System.out.println("Request Body: " + requestBody.toString());
+            List<DummyRequestDto> dtoList = json.get("products");
 
-            for (int i = 0; i < 100; i++) { // Create 100 products per DummyRequestDto
+            for (DummyRequestDto dto : dtoList) { // Create 100 products per DummyRequestDto
+                Store store = storeRepository.findById((long)dto.getStoreId()).orElse(null);
                 Product product = Product.builder()
-                        .imageUrl(dummyRequestDto.getImageUrl())
-                        .animalCategory(dummyRequestDto.getAnimalCategory())
-                        .productCategory(dummyRequestDto.getProductCategory())
-                        .productName(dummyRequestDto.getProductName())
-                        .price(dummyRequestDto.getPrice())
-                        .description(dummyRequestDto.getDescription())
-                        .stock(dummyRequestDto.getStock())
-                        .wishCount(dummyRequestDto.getWishCount())
+                        .store(store)
+                        .imageUrl(dto.getImageUrl())
+                        .animalCategory(dto.getAnimalCategory())
+                        .productCategory(dto.getProductCategory())
+                        .productName(dto.getProductName())
+                        .price(dto.getPrice())
+                        .description(dto.getDescription())
+                        .stock(dto.getStock())
+                        .wishCount(dto.getWishCount())
                         .createdAt(LocalDateTime.now())
                         .build();
-                products.add(product);
+                productBatch.add(product);
             }
-            bulkInsertProduct(products);
+            if (productBatch.size() >= BATCH_SIZE) {
+                bulkInsertProduct();
+            }
             return new ResponseEntity<>("Success", HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,11 +83,10 @@ public class DummyController {
 
     @PostMapping("/dummy/store")
     @ResponseBody
+    @Transactional
     public ResponseEntity createDummyStore(@RequestBody DummyStoreDto dummyStoreDto) {
-        System.out.println(dummyStoreDto);
-        try {
 
-            // Create 500 products per DummyRequestDto
+        try {
             Store store = Store.builder()
                         .storeName(dummyStoreDto.getStoreName())
                         .contact(dummyStoreDto.getContact())
@@ -80,8 +97,6 @@ public class DummyController {
                 bulkInsertStore();
             }
 
-
-
             return new ResponseEntity<>("Success", HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,43 +105,19 @@ public class DummyController {
     }
 
 
-    public void bulkInsertProduct(List<Product> products) {
-//        for (Product product : products) {
-//            entityManager.persist(product);
-//        }
-//        String query =
-//                "INSERT INTO Product (imageUrl, animalCategory, productCategory, productName, price, description, stock, wishCount, createdAt) " +
-//                "VALUES (:imageUrl, :animalCategory, :productCategory, :productName, :price, :description, :stock, :wishCount, :createdAt)";
-//
-//        Query jpqlQuery = entityManager.createQuery(query, Product.class);
-//
-//        for (Product product : products) {
-//            jpqlQuery.setParameter("imageUrl", product.getImageUrl());
-//            jpqlQuery.setParameter("animalCategory", product.getAnimalCategory());
-//            jpqlQuery.setParameter("productCategory", product.getProductCategory());
-//            jpqlQuery.setParameter("productName", product.getProductName());
-//            jpqlQuery.setParameter("price", product.getPrice());
-//            jpqlQuery.setParameter("description", product.getDescription());
-//            jpqlQuery.setParameter("stock", product.getStock());
-//            jpqlQuery.setParameter("wishCount", product.getWishCount());
-//            jpqlQuery.setParameter("createdAt", product.getCreatedAt());
-//
-//            jpqlQuery.executeUpdate();
-//        }
+    public void bulkInsertProduct() {
+
         Session session = entityManager.unwrap(Session.class);
-
-        for (int i = 0; i < products.size(); i++) {
-            session.saveOrUpdate(products.get(i));
-
-            if (i % 50 == 0) { // Flush and clear the session every 50 records
-                session.flush();
-                session.clear();
-            }
-
+        for (int i = 0; i < productBatch.size(); i++) {
+            session.saveOrUpdate(productBatch.get(i));
         }
+
+        session.flush();
+        session.clear();
+        productBatch.clear();
     }
 
-        public void bulkInsertStore () {
+    public void bulkInsertStore () {
 
             Session session = entityManager.unwrap(Session.class);
             for (int i = 0; i < storeBatch.size(); i++) {
