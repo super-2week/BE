@@ -19,13 +19,13 @@ public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="order_detail_id", nullable = false)
-    private Integer id;
+    private Long id;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="order_id", nullable = false)
     private Order order;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="product_id", nullable = false)
     private Product product;
 
@@ -37,6 +37,4 @@ public class OrderDetail {
 
     @Column(name="is_deleted", nullable = false)
     private Boolean isDeleted;
-
-
 }

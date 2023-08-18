@@ -26,9 +26,9 @@ public class Store {
 	@Column(name = "store_id", nullable = false)
 	private Long id;
 
-	@Column(name = "status_name", nullable = false, length = 20)
-	private String statusName;
+	@Column(name = "store_name", nullable = false, length = 20)
+	private String storeName;
 
-	@Column(name = "context", nullable = false, length = 20)
+	@Column(name = "contact", nullable = false, length = 20)
 	private String contact;
 }

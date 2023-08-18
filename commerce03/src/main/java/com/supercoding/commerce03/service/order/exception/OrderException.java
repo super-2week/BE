@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.service.order.exception;
 
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,4 +15,6 @@ public class OrderException extends RuntimeException{
         this.errorCode = errorCode;
         this.errorMessage = errorCode.getDescription();
     }
+
 }
+

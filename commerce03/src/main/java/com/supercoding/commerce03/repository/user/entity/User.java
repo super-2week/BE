@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.repository.user.entity;
 
 import com.supercoding.commerce03.repository.order.entity.Order;
+import com.supercoding.commerce03.web.dto.user.SignUp;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -29,14 +31,10 @@ public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "user_id", nullable = false)
+	@Column(name = "user_id")
 	private Long id;
 
-	@OneToOne
-	@JoinColumn(name = "user_id")
-	private User user;
-
-	@Column(name = "user_name")
+	@Column(name = "user_name", nullable = false)
 	private String userName;
 
 	@Column(name = "image_url")
@@ -51,5 +49,13 @@ public class User {
 	private LocalDateTime updatedAt;
 
 	@Column(name = "is_deleted")
-	private boolean isDeleted;
+	private Boolean isDeleted;
+
+	public static User toEntity(SignUp signUp){
+		return User.builder()
+			.userName(signUp.getUserName())
+			.createdAt(LocalDateTime.now())
+			.isDeleted(false)
+			.build();
+	}
 }
