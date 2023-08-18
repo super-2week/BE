@@ -32,10 +32,6 @@ public class Payment {
 	@JoinColumn(name="user_id", nullable = false)
 	private User user;
 
-//	@OneToOne
-//	@JoinColumn(name = "user_detail_id", nullable = false)
-//	private UserDetail userDetail;
-
 	@Column(name = "created_at") // 페이충전일
 	@CreatedDate
 	private LocalDateTime createdAt;
