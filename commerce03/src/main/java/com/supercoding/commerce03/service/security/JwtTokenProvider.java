@@ -44,7 +44,7 @@ public class JwtTokenProvider {
         }
     }
     public static Long getLoginId(String token){
-        return Long.valueOf(extractClaims(token).get("email").toString());
+        return Long.valueOf(extractClaims(token).get("userId").toString());//userId가 Long타입이 아닌 다른타입으로 들어옴 toString으로 바꾼 뒤 Long으로 형변환
     }
 
     private static Claims extractClaims(String token) {

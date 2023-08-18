@@ -27,6 +27,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                         throw new RuntimeException("다시 로그인을 해야 합니다");//다시 로그인 하라는 메세지
                     }
                     String token = request.getHeader("Authorization").split(" ")[1];//헤더에서 토큰 값을 추출해온다
+                    //올바른 토큰인지 확인
 
                     Long userId = JwtTokenProvider.getLoginId(token);//추출해 가져온 토큰을 이용해 아이디를 가져오기
                     request.setAttribute("userId", userId);//요청 값에 userId라는 이름으로 인덱스 값 설정
