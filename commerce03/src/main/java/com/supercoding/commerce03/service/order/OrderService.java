@@ -4,13 +4,13 @@ import com.supercoding.commerce03.repository.order.OrderDetailRepository;
 import com.supercoding.commerce03.repository.order.OrderRepository;
 import com.supercoding.commerce03.repository.order.entity.Order;
 import com.supercoding.commerce03.repository.order.entity.OrderDetail;
-import com.supercoding.commerce03.repository.order.entity.ProductAndOrderAmount;
 import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.service.order.exception.OrderErrorCode;
 import com.supercoding.commerce03.service.order.exception.OrderException;
+import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +32,8 @@ public class OrderService {
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+
+    private final PaymentService paymentService;
 
     @Transactional
     public OrderDto.OrderResponse orderRegister(String userId, OrderDto.OrderRegisterRequest orderRegisterRequest) {
@@ -81,6 +83,7 @@ public class OrderService {
 
         // TODO : 저장 했다면 ? -> 결제 service 의 금액 차감(결제 로직)
 //        금액 차감할 때, 금액 부족한 경우, => Exception // new OrderException(OrderErrorCode.LACK_OF_POINT));
+        paymentService.orderByBusiness(Long.valueOf(userId), totalAmount);
 
 
         //  물품 재고값 변경(재고 0보다 작아지면 재고 부족 Exception) + 구매 횟수 변경
@@ -100,6 +103,7 @@ public class OrderService {
             } else {
 
                 //TODO : 결제 취소 로직 추가
+                paymentService.cancelByBusiness(Long.valueOf(userId), totalAmount);
                 throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
             }
         });
@@ -144,6 +148,7 @@ public class OrderService {
         if (order.getStatus().equals("주문 취소")) throw new OrderException(OrderErrorCode.ORDER_ALREADY_CANCELED);
 
         // TODO : 결제 취소 로직
+        paymentService.cancelByBusiness(user.getId(), order.getTotalAmount());
         order.setStatusAndTimeNow("결제 취소");
 
         // 주문 취소 ( 주문 테이블 주문 취소, 주문 상세 삭제)
