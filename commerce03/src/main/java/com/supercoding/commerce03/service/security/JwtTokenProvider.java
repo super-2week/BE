@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-    private static final String SECRET_KEY = "dSa2Hased =";
+    private static final String SECRET_KEY = "c3VwZXJjb2Rpbmc=";
 
     public static String createToken(User user, UserDetail userDetail) {
         // 토큰의 만료 날짜 설정
         Date expiryDate = Date.from(
             Instant.now()
-                .plus(1, ChronoUnit.HOURS)
+                .plus(1, ChronoUnit.DAYS)
         );
         // JWT 클레임 설정
         Claims claims = Jwts.claims();
@@ -34,19 +34,20 @@ public class JwtTokenProvider {
             .setExpiration(expiryDate)  // 토큰 만료 날짜 설정 추가
             .compact();  // 토큰 생성 후 문자열 형태로 반환
     }
-    public static boolean isExpired(String token) {
-        try {
-            Date expiredDate = extractClaims(token).getExpiration();
-            // Token의 만료 날짜가 지금보다 이전인지 check 이전이면 만료
-            return expiredDate.before(new Date());
-        } catch (RuntimeException e) {
-            throw new RuntimeException("로그인을 다시 해주세요");
-        }
-    }
+
+//    public static String getLoginEmail(String token){
+//        return extractClaims(token).get("Email").toString();
+//    }
+
     public static Long getLoginId(String token){
         return Long.valueOf(extractClaims(token).get("userId").toString());//userId가 Long타입이 아닌 다른타입으로 들어옴 toString으로 바꾼 뒤 Long으로 형변환
     }
-
+    public static boolean isExpired(String token) {
+        Date expiredDate = extractClaims(token).getExpiration();
+        // Token의 만료 날짜가 지금보다 이전인지 check 이전이면 만료
+        return expiredDate.before(new Date());
+    }
+    //SecretKey를 사용해 Token Parsing
     private static Claims extractClaims(String token) {
         return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
     }
