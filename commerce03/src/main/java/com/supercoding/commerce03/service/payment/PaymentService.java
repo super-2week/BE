@@ -5,6 +5,9 @@ import com.supercoding.commerce03.repository.payment.PaymentRepository;
 import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
 import com.supercoding.commerce03.repository.user.UserRepository;
+import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.service.order.exception.OrderErrorCode;
+import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.web.dto.payment.Cancel;
 import com.supercoding.commerce03.web.dto.payment.Charge;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +27,10 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final PaymentDetailRepository paymentDetailRepository;
 
-
-//    paymentService.createPayment(user);
-//    public void createPayment(User user){
-//
-//        Payment payment = Payment.createPayment(user);
-//
-//        paymentRepository.save(payment);
-//    }
+    public void createPayment(User user){
+        Payment payment = Payment.createPayment(user);
+        paymentRepository.save(payment);
+    }
 
     @Transactional
     public Charge.Response chargeByCoin(Long userId, Charge.Request request) {
@@ -61,13 +60,22 @@ public class PaymentService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public Cancel.Response cancelByCoin(Long userId, Cancel.Request request) {
-        Payment payment = paymentRepository.findById(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
-        int chargeTotalCoin = payment.getTotalCoin() + request.getCoin();
-        payment.setCoin(chargeTotalCoin);
 
-        return Cancel.Response.from(payment);
+    public void cancelByBusiness(Long userId, Integer totalAmount) {
+        Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
+        int chargeTotalCoin = payment.getTotalCoin() + totalAmount;
+        payment.setCoin(chargeTotalCoin);
+    }
+
+
+    public void orderByBusiness(Long userId, Integer totalAmount) {
+        Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
+        if (payment.getTotalCoin() < totalAmount) {
+            throw new OrderException(OrderErrorCode.LACK_OF_POINT);
+        } else {
+            payment.setTotalCoin(payment.getTotalCoin() - totalAmount);
+        }
+
     }
 
 }

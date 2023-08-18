@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 public enum OrderErrorCode {
     NEVER_ORDERED_BEFORE("해당 유저는 주문을 한 적이 없습니다.",HttpStatus.OK),
 
+
     USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND),
     PRODUCT_NOT_FOUND("주문한 상품이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     ORDER_NOT_FOUND("해당 주문이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
@@ -22,4 +23,6 @@ public enum OrderErrorCode {
     private final String description;
     private final HttpStatus httpStatus;
 
+
 }
+
