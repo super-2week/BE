@@ -62,4 +62,9 @@ public class Order {
     @Column(name = "total_amount")
     private Integer totalAmount;
 
+    public void setStatusAndTimeNow(String status) {
+        this.setStatus(status);
+        this.setModifiedAt(LocalDateTime.now());
+    }
+
 }

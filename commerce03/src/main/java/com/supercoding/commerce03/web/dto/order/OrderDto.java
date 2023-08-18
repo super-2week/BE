@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.web.dto.order;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -44,6 +45,7 @@ public class OrderDto {
     public static class ResponseOrderProduct{
         private Long id;
         private String productName;
+        @JsonFormat(pattern = "#,###")
         private Integer price;
         private Integer amount;
         private String imgUrl;
@@ -54,9 +56,10 @@ public class OrderDto {
     @Builder
     @AllArgsConstructor
     @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
-    public static class OrderRegisterResponse{
+    public static class OrderResponse{
         private Long orderId;
         private String status;
+        @JsonFormat(pattern = "#,###")
         private Integer totalAmount;
         //받을 사람
         private String recipient;

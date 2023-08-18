@@ -5,15 +5,12 @@ import com.supercoding.commerce03.repository.order.OrderRepository;
 import com.supercoding.commerce03.repository.order.entity.Order;
 import com.supercoding.commerce03.repository.order.entity.OrderDetail;
 import com.supercoding.commerce03.repository.order.entity.ProductAndOrderAmount;
-import com.supercoding.commerce03.repository.payment.PaymentRepository;
-import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.service.order.exception.OrderErrorCode;
 import com.supercoding.commerce03.service.order.exception.OrderException;
-import com.supercoding.commerce03.service.order.mapper.OrderMapper;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,10 +34,9 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public OrderDto.OrderRegisterResponse orderRegister(String userId, OrderDto.OrderRegisterRequest orderRegisterRequest) {
+    public OrderDto.OrderResponse orderRegister(String userId, OrderDto.OrderRegisterRequest orderRegisterRequest) {
         //user userId로 객체 가져오기
-        User user = userRepository.findById(Long.valueOf(userId))
-                .orElseThrow(() -> new OrderException(OrderErrorCode.USER_NOT_FOUND));
+        User user = validUser(Long.valueOf(userId));
 
         // 주문 상품 총액 계산
         Integer totalAmount = orderRegisterRequest.getProducts().stream()
@@ -67,11 +62,16 @@ public class OrderService {
         orderRepository.save(order);
 
         // 상품들  -> orderDetails 생성 및 테이블에 저장
-        //TODO : refactor 할 때 해당 로직 좀더 명확하게 구현해보자
         orderRegisterRequest.getProducts().stream()
                 .forEach((product) -> {
-                            OrderDetail orderDetail = OrderMapper.INSTANCE.productToOrderDetail(validProduct(product.getId()), order, product.getAmount());
-                            log.info("orderDetail : " + orderDetail);
+                            OrderDetail orderDetail
+                                    = OrderDetail.builder()
+                                    .amount(product.getAmount())
+                                    .order(order)
+                                    .price(product.getPrice())
+                                    .isDeleted(false)
+                                    .product(validProduct(product.getId()))
+                                    .build();
                             orderDetailRepository.save(orderDetail);
                         }
                 );
@@ -83,47 +83,41 @@ public class OrderService {
 //        금액 차감할 때, 금액 부족한 경우, => Exception // new OrderException(OrderErrorCode.LACK_OF_POINT));
 
 
-        //  금액 차감 정상적으로 이루어졌다면? 물품 재고값 변경(재고 0보다 작아지면 재고 부족 Exception)
-        List<ProductAndOrderAmount> productAndOrderAmounts
-                = orderRegisterRequest.getProducts().stream()
-                .map(orderProductRequest ->
+        //  물품 재고값 변경(재고 0보다 작아지면 재고 부족 Exception) + 구매 횟수 변경
+        List<OrderDetail> orderDetails = orderDetailRepository.findOrderDetailsByOrder(order);
+        orderDetails.stream().forEach((orderDetail) -> {
+            Product productChangingAmount
+                    = productRepository.findById(orderDetail.getProduct().getId())
+                    .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
+            Integer stockToChange = productChangingAmount.getStock() - orderDetail.getAmount();
+            Integer purchaseCountToChange = productChangingAmount.getPurchaseCount() + orderDetail.getAmount();
+            if (stockToChange >= 0) {
+                productChangingAmount.setStock(stockToChange);
+                productChangingAmount.setPurchaseCount(purchaseCountToChange);
+                productRepository.save(productChangingAmount);
+                order.setStatus("결제 완료");
+                log.info("stock : " + productChangingAmount.getStock());
+            } else {
 
-                        ProductAndOrderAmount.builder()
-                                .product(validProduct(orderProductRequest.getId()))
-                                .amount(orderProductRequest.getAmount())
-                                .build()
-                ).collect(Collectors.toList());
+                //TODO : 결제 취소 로직 추가
+                throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
+            }
+        });
 
-        productAndOrderAmounts.stream()
-                .forEach((productAndOrderAmount) -> {
-                    Product productChangingAmount
-                            = productRepository.findById(productAndOrderAmount.getProduct().getId())
-                            .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
-                    Integer stockToChange = productChangingAmount.getStock() - productAndOrderAmount.getAmount();
-                    if (stockToChange >= 0) {
-                        productChangingAmount.setStock(stockToChange);
-                        productRepository.save(productChangingAmount);
-                        order.setStatus("결제 완료");
-                        log.info("stock : " + productChangingAmount.getStock());
-                    } else {
-
-                        //TODO : 결제 취소 로직 추가
-                        throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
-                    }
-                });
 
         // orderedProducts dto list 생성
-        List<OrderDto.ResponseOrderProduct> orderedProducts = orderDetailRepository.findOrderDetailsByOrder(order).stream()
+        List<OrderDto.ResponseOrderProduct> orderedProducts = orderDetails.stream()
                 .map(orderDetail -> OrderDto.ResponseOrderProduct.builder()
                         .id(orderDetail.getProduct().getId())
                         .productName(orderDetail.getProduct().getProductName())
                         .amount(orderDetail.getAmount())
                         .price(orderDetail.getProduct().getPrice())
+                        .imgUrl(orderDetail.getProduct().getImageUrl())
                         .build()
                 ).collect(Collectors.toList());
 
         // 반환할 OrderRegisterResponse 생성
-        OrderDto.OrderRegisterResponse orderRegisterResponse = OrderDto.OrderRegisterResponse.builder()
+        OrderDto.OrderResponse orderRegisterResponse = OrderDto.OrderResponse.builder()
                 .orderedProducts(orderedProducts)
                 .orderId(order.getId())
                 .status(order.getStatus())
@@ -139,30 +133,37 @@ public class OrderService {
         return orderRegisterResponse;
     }
 
-    private Product validProduct(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
-        return product;
-    }
-
 
     @Transactional
     public OrderDto.OrderCancelResponse orderCancel(String userId, String orderId) {
         //user userId로 객체 가져오기
-        User user = userRepository.findById(Long.valueOf(userId))
-                .orElseThrow(() -> new OrderException(OrderErrorCode.USER_NOT_FOUND));
+        User user = validUser(Long.valueOf(userId));
         //Order 가져오기
-        Long longOrderId = Long.valueOf(orderId);
-        Order order = orderRepository.findById(longOrderId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+        Order order = validOrder(Long.valueOf(orderId));
+
+        if (order.getStatus().equals("주문 취소")) throw new OrderException(OrderErrorCode.ORDER_ALREADY_CANCELED);
 
         // TODO : 결제 취소 로직
-        order.setStatus("결제 취소");
+        order.setStatusAndTimeNow("결제 취소");
 
         // 주문 취소 ( 주문 테이블 주문 취소, 주문 상세 삭제)
         List<OrderDetail> orderDetailsToDeleted = orderDetailRepository.findOrderDetailsByOrder(order);
-        orderDetailsToDeleted.stream().forEach((orderDetail -> orderDetail.setIsDeleted(true)));
-        order.setStatus("주문 취소");
+        orderDetailsToDeleted.stream().forEach((orderDetail) -> {
+            orderDetail.setIsDeleted(true);
+            Product productChangingAmount
+                    = productRepository.findById(orderDetail.getProduct().getId())
+                    .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
+            Integer stockToChange = productChangingAmount.getStock() + orderDetail.getAmount();
+            Integer purchaseCountToChange = productChangingAmount.getPurchaseCount() - orderDetail.getAmount();
+
+            productChangingAmount.setStock(stockToChange);
+            productChangingAmount.setPurchaseCount(purchaseCountToChange);
+            productRepository.save(productChangingAmount);
+            order.setStatus("결제 완료");
+            log.info("stock : " + productChangingAmount.getStock());
+        });
+        order.setStatusAndTimeNow("주문 취소");
+
 
         orderRepository.save(order);
 
@@ -174,15 +175,11 @@ public class OrderService {
     }
 
     public Page<OrderDto.OrderListResponse> orderList(String userId, Pageable pageable) {
-        Long longUserId = Long.valueOf(userId);
 
-        User user = userRepository.findById(longUserId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.USER_NOT_FOUND));
+        User user = validUser(Long.valueOf(userId));
 
-        // 에러가 잡힐줄 알았는데 안잡히네?!?!?
-        Page<Order> orders = orderRepository.findAllByUser(user, pageable)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.NEVER_ORDERED_BEFORE));
-        //가독성 위해 변경할 Refactoring 할 필요성. TODO
+        Page<Order> orders = orderRepository.findAllByUser(user, pageable);
+
         Page<OrderDto.OrderListResponse> orderListResponsePage
                 = orders.map(order -> OrderDto.OrderListResponse
                 .builder()
@@ -204,9 +201,10 @@ public class OrderService {
 
     @Transactional
     public String deleteOneInOrderList(String orderId) {
-        Long longOrderId = Long.valueOf(orderId);
-        Order orderToDeleted = orderRepository.findById(longOrderId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+        Order orderToDeleted = validOrder(Long.valueOf(orderId));
+
+        if (orderToDeleted.getIsDeleted() == true) throw new OrderException(OrderErrorCode.ORDER_ALREADY_DELELED);
+
         orderToDeleted.setIsDeleted(true);
         orderToDeleted.setModifiedAt(LocalDateTime.now());
 
@@ -215,14 +213,12 @@ public class OrderService {
         return "요청하신 orderId " + orderId + "의 주문 내역이 삭제되었습니다.";
     }
 
-    public OrderDto.OrderRegisterResponse orderViewDetail(String orderId) {
-        Long longOrderedId = Long.valueOf(orderId);
-        Order order = orderRepository.findById(longOrderedId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+    public OrderDto.OrderResponse orderViewDetail(String orderId) {
+        Order order = validOrder(Long.valueOf(orderId));
 
-        OrderDto.OrderRegisterResponse orderRegisterResponse
-                = OrderDto.OrderRegisterResponse.builder()
-                .orderId(longOrderedId)
+        OrderDto.OrderResponse orderRegisterResponse
+                = OrderDto.OrderResponse.builder()
+                .orderId(Long.valueOf(orderId))
                 .status(order.getStatus())
                 .totalAmount(order.getTotalAmount())
                 .recipient(order.getRecipient())
@@ -245,6 +241,22 @@ public class OrderService {
 
         return orderRegisterResponse;
 
+    }
+
+    private User validUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.USER_NOT_FOUND));
+    }
+
+    private Product validProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
+        return product;
+    }
+
+    private Order validOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
 
