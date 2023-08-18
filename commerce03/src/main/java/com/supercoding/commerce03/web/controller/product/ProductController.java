@@ -25,9 +25,10 @@ public class ProductController {
      * 메인페이지
      * @return 카테고리 정보 응답
      */
-    @GetMapping("/")
-    public ResponseEntity<Map<String, Map<String, String>>> getIndex(){
-        Map<String, Map<String, String>> response = productService.getIndex();
+    @GetMapping("v1/api/navi")
+    public ResponseEntity<List<Map<String, Object>>> getIndex(){
+
+        List<Map<String, Object>> response = productService.getNaviData();
         return ResponseEntity.ok(response);
     }
 
@@ -36,7 +37,7 @@ public class ProductController {
      * @param animalCategory
      * @return
      */
-    @GetMapping("/banner/{animalCategory}")
+    @GetMapping("v1/api/banner/{animalCategory}")
     public ResponseEntity<List<ProductDto>> getBanner(
             @PathVariable(required = false) String animalCategory
     ){
@@ -53,7 +54,7 @@ public class ProductController {
      * @param productCategory
      * @return
      */
-    @GetMapping("/popular/{animalCategory}/{productCategory}")
+    @GetMapping("v1/api/popular/{animalCategory}/{productCategory}")
     public ResponseEntity<List<ProductDto>> getPopular(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory
@@ -72,7 +73,7 @@ public class ProductController {
      * @param animalCategory
      * @return
      */
-    @GetMapping("/recommend/{animalCategory}")
+    @GetMapping("v1/api/recommend/{animalCategory}")
     public ResponseEntity<List<ProductDto>> getRecommends(
             @PathVariable(required = false) String animalCategory
     ){
@@ -81,6 +82,20 @@ public class ProductController {
         //해당 카테고리 추천 상품 3종
         List<ProductDto> recommendList = productService.getRecommendThree(getRequestDto);
         return ResponseEntity.ok(recommendList);
+    }
+
+    /**
+     * 싱픔 상세페이지
+     * @param productId
+     * @return
+     */
+    @GetMapping("v1/api/product/detail/{productId}")
+    public ResponseEntity<List<Product>> getProduct(
+            @PathVariable Integer productId
+
+    ) {
+        List<Product> product = productService.getProduct(productId);
+        return ResponseEntity.ok(product);
     }
 
     /**
@@ -93,9 +108,9 @@ public class ProductController {
      * @return
      */
     @GetMapping(value={
-            "/product/{animalCategory}" ,
-            "/product/{animalCategory}/{productCategory}",
-            "/product/{animalCategory}/{productCategory}/{sortBy}"})
+            "v1/api/product/{animalCategory}" ,
+            "v1/api/product/{animalCategory}/{productCategory}",
+            "v1/api/product/{animalCategory}/{productCategory}/{sortBy}"})
     public ResponseEntity<List<Product>> getProducts(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
@@ -118,24 +133,10 @@ public class ProductController {
     }
 
     /**
-     * 싱픔 상세페이지
-     * @param productId
-     * @return
-     */
-    @GetMapping("v1/api/product/{productId}")
-    public ResponseEntity<List<Product>> getProduct(
-            @PathVariable Integer productId
-
-    ) {
-        List<Product> product = productService.getProduct(productId);
-        return ResponseEntity.ok(product);
-    }
-
-    /**
      * 유저의 관심상품 조회
      * @return
      */
-    @GetMapping("/product/wish")
+    @GetMapping("v1/api/product/wish")
     public ResponseEntity<List<Wish>> getWishList(){
         //TODO: 로그인한 유저정보 가져오기
         //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -150,8 +151,8 @@ public class ProductController {
      * @param productId
      * @return
      */
-    @PostMapping("/product/wish/{productId}")
-    public ResponseEntity<Wish> addWishList(
+    @PostMapping("v1/api/product/wish/{productId}")
+    public ResponseEntity<ResponseMessageDto> addWishList(
             @PathVariable Integer productId
     ){
         //TODO: 로그인한 유저정보 가져오기
@@ -159,7 +160,7 @@ public class ProductController {
         //String email = authentication.getName();
         long userId = 1L;
         Wish wish = productService.addWishList(userId, (long)productId);
-        return ResponseEntity.ok(wish);
+        return ResponseEntity.ok(new ResponseMessageDto("상품명: " + wish.getProduct().getProductName() + "이(가) 관심상품으로 등록되었습니다."));
     }
 
     /**
@@ -167,7 +168,7 @@ public class ProductController {
      * @param productId
      * @return
      */
-    @DeleteMapping("/product/wish/{productId}")
+    @DeleteMapping("v1/api/product/wish/{productId}")
     public ResponseEntity<ResponseMessageDto> deleteWishList(
             @PathVariable Integer productId
     ){

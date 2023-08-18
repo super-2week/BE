@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -202,24 +203,42 @@ public class ProductService {
         return wishRepository.existsByUserIdAndProductId(userId, productId);
     }
 
-    public Map<String, Map<String, String>> getIndex() {
-        Map<String, String> animalCategory = new HashMap<>();
-        animalCategory.put("dog", "강아지");
-        animalCategory.put("cat", "고양이");
-        animalCategory.put("small", "소동물");
+    public List<Map<String, Object>> getNaviData() {
+        List<Map<String, Object>> naviData = new ArrayList<>();
+        String[] animalIds = {"dog", "cat", "small"};
+        String[] productLabels = {"food", "snack", "clean", "tableware", "house", "cloth"};
+        String[] productValues = {"사료", "간식", "위생", "급식기/급수기", "집/울타리", "의류/악세사리"};
+        String[] smallProductLabels = {"food", "equipment"};
+        String[] smallProductValues = {"사료", "기구"};
 
-        Map<String, String> productCategory = new HashMap<>();
-        productCategory.put("food", "사료");
-        productCategory.put("snack", "간식");
-        productCategory.put("clean", "위생");
-        productCategory.put("tableware", "급식기/급수기");
-        productCategory.put("house", "집/울타리");
-        productCategory.put("cloth", "의류/악세사리");
+        for (String animalId : animalIds) {
+            List<Map<String, String>> productCategoryList = new ArrayList<>();
 
-        Map<String, Map<String, String>> response = new HashMap<>();
-        response.put("animalCategory", animalCategory);
-        response.put("productCategory", productCategory);
+            if (animalId.equals("small")) {
+                for (int i = 0; i < smallProductLabels.length; i++) {
+                    Map<String, String> categoryMap = new HashMap<>();
+                    categoryMap.put("label", smallProductLabels[i]);
+                    categoryMap.put("value", smallProductValues[i]);
+                    productCategoryList.add(categoryMap);
+                }
+            } else {
+                for (int i = 0; i < productLabels.length; i++) {
+                    Map<String, String> categoryMap = new HashMap<>();
+                    categoryMap.put("label", productLabels[i]);
+                    categoryMap.put("value", productValues[i]);
+                    productCategoryList.add(categoryMap);
+                }
+            }
 
-        return response;
+            Map<String, Object> naviDataMap = new HashMap<>();
+            naviDataMap.put("id", animalId);
+            naviDataMap.put("productCategory", productCategoryList);
+
+            naviData.add(naviDataMap);
+        }
+        return naviData;
+
     }
 }
+
+
