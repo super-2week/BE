@@ -10,6 +10,7 @@ import com.supercoding.commerce03.service.user.exception.UserException;
 import com.supercoding.commerce03.web.dto.user.Login;
 import com.supercoding.commerce03.web.dto.user.ProfileResponse;
 import com.supercoding.commerce03.web.dto.user.SignUp;
+import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,10 +126,23 @@ public class UserService {
 
     public ProfileResponse getProfile(Long userId) {
         UserDetail userDetail = userDetailRepository.findByUserId(userId);
-        if(userDetail == null ){
+        if (userId == null) {
             throw new UserException(UserErrorCode.USER_NOT_FOUND);
         }
         return ProfileResponse.fromEntity(userDetail);
     }
 
+    public String updateUser(Long userId, UpdateProfile updateProfile) {
+
+        validatedPassword(updateProfile.getPassword());//비밀번호 정책
+        checkPassword(updateProfile.getPassword(), updateProfile.getCheckPassword());//입력받은 비밀번호 2중 검증
+
+        UserDetail userDetail = userDetailRepository.findByUserId(userId);//회원의 ID로 접근 권한 처리
+        if (userId == null) {
+            throw new UserException(UserErrorCode.NOT_AUTHORIZED);
+        }
+        userDetail.setPassword(passwordEncoder.encode(updateProfile.getPassword()));
+        userDetailRepository.save(userDetail);
+        return "회원수정이 성공적으로 완료되었습니다";
+    }
 }

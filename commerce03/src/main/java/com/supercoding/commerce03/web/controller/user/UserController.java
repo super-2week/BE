@@ -6,6 +6,7 @@ import com.supercoding.commerce03.service.user.UserService;
 import com.supercoding.commerce03.web.dto.user.Login;
 import com.supercoding.commerce03.web.dto.user.ProfileResponse;
 import com.supercoding.commerce03.web.dto.user.SignUp;
+import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +51,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getProfile(userId));
     }
 
+    @Auth
+    @PatchMapping
+    public ResponseEntity<Object>updateProfile(@RequestBody UpdateProfile updateProfile){
+        Long userId = AuthHolder.getUserId();
+        return ResponseEntity.ok(userService.updateUser(userId,updateProfile));
+    }
 }
 
