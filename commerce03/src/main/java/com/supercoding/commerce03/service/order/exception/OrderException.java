@@ -15,4 +15,6 @@ public class OrderException extends RuntimeException{
         this.errorCode = errorCode;
         this.errorMessage = errorCode.getDescription();
     }
+
 }
+

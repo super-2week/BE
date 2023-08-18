@@ -11,7 +11,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,9 +58,8 @@ public class Review {
 	@Column(name = "delete_at")
 	private LocalDateTime deleteAt;
 
-	@Column(name = "is_delete")
-	private Byte isDelete;
-
+	@Column(name = "is_deleted")
+	private Boolean isDeleted;
 
 
 }
