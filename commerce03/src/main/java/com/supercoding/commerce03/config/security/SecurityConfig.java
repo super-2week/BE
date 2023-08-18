@@ -1,7 +1,7 @@
 package com.supercoding.commerce03.config.security;
 
 import com.supercoding.commerce03.service.security.TokenFilter;
-import com.supercoding.commerce03.service.user.UserDetailService;
+import com.supercoding.commerce03.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailService userDetailService;
+    private final UserService userService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,7 +30,7 @@ public class SecurityConfig {
             .rememberMe().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
-            .addFilterBefore(new TokenFilter(userDetailService), UsernamePasswordAuthenticationFilter.class)//인증에대한 검사
+            .addFilterBefore(new TokenFilter(userService), UsernamePasswordAuthenticationFilter.class)//인증에대한 검사
             .authorizeRequests()
             .antMatchers("/**").permitAll();//권한이 있어야 호출가능한지 검사;
         return http.build();
