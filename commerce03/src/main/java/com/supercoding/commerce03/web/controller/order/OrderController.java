@@ -1,15 +1,12 @@
 package com.supercoding.commerce03.web.controller.order;
 
 import com.supercoding.commerce03.service.order.OrderService;
-//import com.supercoding.commerce03.service.security.Auth;
-//import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,7 +24,7 @@ public class OrderController {
     ) {
         //TODO : 임시 유저 정보 실제 정보 받아와서 바꿔야함.
         String userId = "1";
-        OrderDto.OrderRegisterResponse orderResponse
+        OrderDto.OrderResponse orderResponse
                 = orderService.orderRegister(userId, orderRegisterRequest);
         return ResponseEntity.ok(orderResponse);
     }
@@ -75,7 +72,7 @@ public class OrderController {
     public ResponseEntity<?> orderViewDetail(
             @PathVariable String orderId
     ) {
-        OrderDto.OrderRegisterResponse orderDetailResponse
+        OrderDto.OrderResponse orderDetailResponse
                 = orderService.orderViewDetail(orderId);
 
         return ResponseEntity.ok(orderDetailResponse);

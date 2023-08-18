@@ -11,6 +11,7 @@ import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.web.dto.payment.Cancel;
 import com.supercoding.commerce03.web.dto.payment.Charge;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
@@ -64,17 +66,20 @@ public class PaymentService {
     public void cancelByBusiness(Long userId, Integer totalAmount) {
         Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
         int chargeTotalCoin = payment.getTotalCoin() + totalAmount;
-        payment.setCoin(chargeTotalCoin);
+        payment.setTotalCoin(chargeTotalCoin);
+        paymentRepository.save(payment);
     }
 
 
     public void orderByBusiness(Long userId, Integer totalAmount) {
+        log.info("userId : " + userId);
         Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
         if (payment.getTotalCoin() < totalAmount) {
             throw new OrderException(OrderErrorCode.LACK_OF_POINT);
         } else {
             payment.setTotalCoin(payment.getTotalCoin() - totalAmount);
         }
+        paymentRepository.save(payment);
 
     }
 
