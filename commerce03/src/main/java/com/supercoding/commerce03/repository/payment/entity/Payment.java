@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.format.annotation.NumberFormat;
 
 import java.time.LocalDateTime;
 
@@ -31,9 +32,9 @@ public class Payment {
 	@JoinColumn(name="user_id", nullable = false)
 	private User user;
 
-	@OneToOne
-	@JoinColumn(name = "user_detail_id", nullable = false)
-	private UserDetail userDetail;
+//	@OneToOne
+//	@JoinColumn(name = "user_detail_id", nullable = false)
+//	private UserDetail userDetail;
 
 	@Column(name = "created_at") // 페이충전일
 	@CreatedDate
