@@ -8,6 +8,8 @@ import com.supercoding.commerce03.service.cart.exception.CartErrorResponse;
 import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.service.order.exception.OrderErrorResponse;
 import com.supercoding.commerce03.service.order.exception.OrderException;
+import com.supercoding.commerce03.service.product.exception.ProductErrorResponse;
+import com.supercoding.commerce03.service.product.exception.ProductException;
 import com.supercoding.commerce03.service.review.exception.ReviewErrorResponse;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
 import com.supercoding.commerce03.web.advice.exception.ErrorResponse;
@@ -67,6 +69,17 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
 				.body(ReviewErrorResponse.builder()
+						.errorCode(e.getErrorCode())
+						.errorMessage(e.getErrorMessage())
+						.build());
+
+	}
+
+	@ExceptionHandler(ProductException.class)
+	public ResponseEntity<?> handleProductException(ProductException e){
+
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+				.body(ProductErrorResponse.builder()
 						.errorCode(e.getErrorCode())
 						.errorMessage(e.getErrorMessage())
 						.build());

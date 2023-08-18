@@ -232,12 +232,23 @@ public class ProductService {
 
             Map<String, Object> naviDataMap = new HashMap<>();
             naviDataMap.put("id", animalId);
+            naviDataMap.put("label", getAnimalLabel(animalId));
             naviDataMap.put("productCategory", productCategoryList);
-
             naviData.add(naviDataMap);
         }
         return naviData;
 
+    }
+
+    private String getAnimalLabel(String animalId) {
+        if ("dog".equals(animalId)) {
+            return "강아지";
+        } else if ("cat".equals(animalId)) {
+            return "고양이";
+        } else if ("small".equals(animalId)) {
+            return "소동물";
+        }
+        return "";
     }
 }
 
