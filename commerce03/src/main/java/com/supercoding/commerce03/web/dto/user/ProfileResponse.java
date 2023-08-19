@@ -20,6 +20,7 @@ public class ProfileResponse {
         private String email;
         private String phoneNumber;
         private String address;
+        private String detailAddress;
 
     public static ProfileResponse fromEntity(UserDetail userDetail){
         return ProfileResponse.builder()
@@ -28,6 +29,7 @@ public class ProfileResponse {
             .email(userDetail.getEmail())
             .phoneNumber(userDetail.getPhoneNumber())
             .address(userDetail.getAddress())
+            .detailAddress(userDetail.getDetailAddress())
             .build();
      }
 }

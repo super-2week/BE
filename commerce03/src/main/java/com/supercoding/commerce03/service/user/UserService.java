@@ -142,6 +142,9 @@ public class UserService {
             throw new UserException(UserErrorCode.NOT_AUTHORIZED);
         }
         userDetail.setPassword(passwordEncoder.encode(updateProfile.getPassword()));
+        userDetail.setAddress(updateProfile.getAddress());
+        userDetail.setDetailAddress(updateProfile.getDetailAddress());
+        userDetail.getUser().setImageUrl(updateProfile.getImageUrl());
         userDetailRepository.save(userDetail);
         return "회원수정이 성공적으로 완료되었습니다";
     }
