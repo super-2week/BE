@@ -8,79 +8,29 @@ import java.util.Objects;
 @Getter
 @Setter
 public class GetRequestDto {
-    private Integer animalCategory;
-    private Integer productCategory;
+    private String animalCategory;
+    private String productCategory;
     private String sortBy;
     private String searchWord;
 
     public GetRequestDto(String animalCategory, String productCategory, String sortBy) {
-        this.animalCategory = animalCategoryConvert(animalCategory);
-        this.productCategory = productCategoryConvert(animalCategory, productCategory);
+        this.animalCategory = animalCategory;
+        this.productCategory = productCategory;
         this.sortBy = sortByConvert(sortBy);
     }
 
 
     public GetRequestDto(String animalCategory) {
-        this.animalCategory = animalCategoryConvert(animalCategory);
+        this.animalCategory = animalCategory;
     }
 
     public GetRequestDto(String animalCategory, String productCategory) {
-        this.animalCategory = animalCategoryConvert(animalCategory);
-        this.productCategory = productCategoryConvert(animalCategory, productCategory);
+        this.animalCategory = animalCategory;
+        this.productCategory = productCategory;
     }
 
-    public Integer animalCategoryConvert(String animalCategory) {
-        if (animalCategory == null) {
-            return 1; // 기본값 설정 또는 다른 로직 추가
-        }
 
-        switch (animalCategory) {
-            case "dog":
-                return 1;
-            case "cat":
-                return 2;
-            case "small":
-                return 3;
-            default:
-                return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
-        }
-    }
 
-    public Integer productCategoryConvert(String animalCategory, String productCategory) {
-        if (productCategory == null) {
-            return 1; // 기본값 설정 또는 다른 로직 추가
-        }
-
-        if(Objects.equals(animalCategory, "small")){
-            switch (productCategory) {
-                case "food":
-                    return 1;
-                case "equipment":
-                    return 2;
-                case "house":
-                    return 3;
-                default:
-                    return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
-            }
-        }else{
-            switch (productCategory) {
-                case "food":
-                    return 1;
-                case "snack":
-                    return 2;
-                case "clean":
-                    return 3;
-                case "tableware":
-                    return 4;
-                case "house":
-                    return 5;
-                case "cloth":
-                    return 6;
-                default:
-                    return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
-            }
-        }
-    }
 
     public String sortByConvert(String sortBy) {
         if (sortBy == null) {

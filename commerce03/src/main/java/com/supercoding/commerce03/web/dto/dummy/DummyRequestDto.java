@@ -19,6 +19,8 @@ public class DummyRequestDto {
     private int animalCategory;
     private int productCategory;
     private String productName;
+    private String modelNum;
+    private String originLabel;
     private int price;
     private String description;
     private int stock;
@@ -31,6 +33,8 @@ public class DummyRequestDto {
         this.animalCategory = dummyJson.getInt("animalCategory");
         this.productCategory = dummyJson.getInt("productCategory");
         this.productName = dummyJson.getString("productName");
+        this.modelNum = dummyJson.getString("modelNum");
+        this.originLabel = dummyJson.getString("originLabel");
         this.price = dummyJson.getInt("price");
         this.description = dummyJson.getString("description");
         this.stock = dummyJson.getInt("stock");

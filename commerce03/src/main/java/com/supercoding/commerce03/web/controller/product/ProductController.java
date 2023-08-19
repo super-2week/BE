@@ -3,7 +3,10 @@ package com.supercoding.commerce03.web.controller.product;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.wish.entity.Wish;
 import com.supercoding.commerce03.service.product.ProductService;
+import com.supercoding.commerce03.service.security.Auth;
+import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.web.dto.product.*;
+import com.supercoding.commerce03.web.dto.product.util.WishListSearch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,14 +23,13 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
-
+    private final WishListSearch wishListSearch;
     /**
      * 메인페이지
      * @return 카테고리 정보 응답
      */
     @GetMapping("v1/api/navi")
     public ResponseEntity<List<Map<String, Object>>> getIndex(){
-
         List<Map<String, Object>> response = productService.getNaviData();
         return ResponseEntity.ok(response);
     }
@@ -37,16 +39,19 @@ public class ProductController {
      * @param animalCategory
      * @return
      */
+    @Auth
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/banner/{animalCategory}")
     public ResponseEntity<String> getBanner(
             @PathVariable(required = false) String animalCategory
     ){
-        //GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
-        BannerRequestDto bannerRequestDto = new BannerRequestDto(animalCategory);
-        log.info("배너상품 동물분류: " + animalCategory + bannerRequestDto.getAnimalCategory());
+        //TODO: 로그인한 유저정보 가져오기
+        Long userId = AuthHolder.getUserId();
 
-        String purchasedList = productService.getMostPurchased(bannerRequestDto.getAnimalCategory(), bannerRequestDto.getProductCategory());
+        GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
+        log.info("배너상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
+
+        String purchasedList = productService.getMostPurchased(getRequestDto, userId);
         return ResponseEntity.ok(purchasedList);
     }
 
@@ -67,7 +72,7 @@ public class ProductController {
         log.info("인기상품 용품분류: " + productCategory + getRequestDto.getProductCategory());
 
         //해당 카테고리 인기 Top10
-        List<ProductDto> popularList = productService.getPopularTen(getRequestDto.getAnimalCategory(), getRequestDto.getProductCategory());
+        List<ProductDto> popularList = productService.getPopularTen(getRequestDto);
         return ResponseEntity.ok(popularList);
     }
 
@@ -81,11 +86,10 @@ public class ProductController {
     public ResponseEntity<String> getRecommends(
             @PathVariable(required = false) String animalCategory
     ){
-        BannerRequestDto bannerRequestDto = new BannerRequestDto(animalCategory);
-        //GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
-        log.info("추천상품 동물분류: " + animalCategory + bannerRequestDto.getAnimalCategory());
+        GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
+        log.info("추천상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
         //해당 카테고리 추천 상품 3종
-        String recommendList = productService.getRecommendThree(bannerRequestDto.getAnimalCategory(), bannerRequestDto.getProductCategory());
+        String recommendList = productService.getRecommendThree(getRequestDto);
         return ResponseEntity.ok(recommendList);
     }
 
@@ -147,8 +151,8 @@ public class ProductController {
     @GetMapping("v1/api/product/wish")
     public ResponseEntity<List<GetWishListDto>> getWishList(){
         //TODO: 로그인한 유저정보 가져오기
-        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        //String email = authentication.getName();
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String email = authentication.getName();
         long userId = 1L;
         List<GetWishListDto> wishList = productService.getWishList(userId);
         return ResponseEntity.ok(wishList);
@@ -164,8 +168,9 @@ public class ProductController {
             @PathVariable Integer productId
     ){
         //TODO: 로그인한 유저정보 가져오기
-        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        //String email = authentication.getName();
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String email = authentication.getName();
+
         long userId = 1L;
         Wish wish = productService.addWishList(userId, (long)productId);
         return ResponseEntity.ok(new ResponseMessageDto("상품명: " + wish.getProduct().getProductName() + "이(가) 관심상품으로 등록되었습니다."));
