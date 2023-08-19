@@ -10,8 +10,10 @@ import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.service.review.exception.ReviewErrorCode;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
 import com.supercoding.commerce03.web.dto.review.CreateReview;
+import com.supercoding.commerce03.web.dto.review.ModifyReview.Request;
 import com.supercoding.commerce03.web.dto.review.ReviewDto;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,6 +56,24 @@ public class ReviewService {
 		);
 	}
 
+	@Transactional
+	public ReviewDto modifyReview(Request request, Long userId){
+
+		Long inputReviewId = request.getReviewId();
+
+		User validatedUser = validateUser(userId);
+		Review validateReview = validateReview(inputReviewId);
+
+		if (isNotReviewer(validatedUser.getId(), validateReview)) {
+			throw new ReviewException(ReviewErrorCode.REVIEW_PERMISSION_DENIED);
+		}
+
+		validateReview.setTitle(request.getTitle());
+		validateReview.setContent(request.getContent());
+
+		return ReviewDto.fromEntity(validateReview);
+	}
+
 	private User validateUser(Long userId){
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new ReviewException(ReviewErrorCode.USER_NOT_FOUND));
@@ -63,6 +83,14 @@ public class ReviewService {
 		return productRepository.findById(productId)
 				.orElseThrow(
 						() -> new ReviewException(ReviewErrorCode.THIS_PRODUCT_DOES_NOT_EXIST));
+	}
+
+	private Review validateReview(Long reviewId){
+		Review review = reviewRepository.findByIdAndIsDeleted(reviewId, false);
+		if (review == null) {
+			throw new ReviewException(ReviewErrorCode.REVIEW_DOES_NOT_EXIST);
+		}
+		return review;
 	}
 
 	private boolean existReview(Long userId, Long productId){
@@ -75,5 +103,9 @@ public class ReviewService {
 		if (count <= 0) {
 			throw new ReviewException(ReviewErrorCode.REVIEW_PERMISSION_DENIED);
 		}
+	}
+
+	private boolean isNotReviewer(Long userId, Review review){
+		return !Objects.equals(userId, review.getUser().getId());
 	}
 }
