@@ -63,6 +63,8 @@ public class DummyController {
                         .animalCategory(dto.getAnimalCategory())
                         .productCategory(dto.getProductCategory())
                         .productName(dto.getProductName())
+                        .modelNum(dto.getModelNum())
+                        .originLabel(dto.getOriginLabel())
                         .price(dto.getPrice())
                         .description(dto.getDescription())
                         .stock(dto.getStock())

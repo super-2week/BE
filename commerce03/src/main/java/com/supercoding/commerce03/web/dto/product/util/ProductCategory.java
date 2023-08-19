@@ -6,7 +6,8 @@ public enum ProductCategory {
     CLEAN(3, "clean"),
     TABLEWARE(4, "tableware"),
     HOUSE(5, "house"),
-    CLOTH(6, "cloth");
+    CLOTH(6, "cloth"),
+    ETC(7, "etc");
 
     private final int code;
     private final String name;
@@ -24,6 +25,7 @@ public enum ProductCategory {
             case 4: return TABLEWARE.name;
             case 5: return HOUSE.name;
             case 6: return CLOTH.name;
+            case 7: return ETC.name;
             default: return FOOD.name;
         }
     }

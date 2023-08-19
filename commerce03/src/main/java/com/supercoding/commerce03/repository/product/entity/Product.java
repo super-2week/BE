@@ -49,6 +49,12 @@ public class Product {
 	@Column(name = "product_name", nullable = false, length = 20)
 	private String productName;
 
+	@Column(name = "model_num", nullable = true, length = 20)
+	private String modelNum;
+
+	@Column(name = "origin_label", nullable = false, length = 20, columnDefinition = "varchar(20) default '한국'")
+	private String originLabel;
+
 	@Column(name = "price", nullable = false)
 	private Integer price;
 
