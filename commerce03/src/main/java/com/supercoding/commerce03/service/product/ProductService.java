@@ -8,10 +8,12 @@ import com.supercoding.commerce03.repository.wish.WishRepository;
 import com.supercoding.commerce03.repository.wish.entity.Wish;
 import com.supercoding.commerce03.service.product.exception.ProductErrorCode;
 import com.supercoding.commerce03.service.product.exception.ProductException;
-import com.supercoding.commerce03.web.dto.product.GetRequestDto;
-import com.supercoding.commerce03.web.dto.product.GetWishListDto;
-import com.supercoding.commerce03.web.dto.product.ProductDto;
+import com.supercoding.commerce03.web.dto.product.*;
+import com.supercoding.commerce03.web.dto.product.util.ProductCategory;
+import com.supercoding.commerce03.web.dto.product.util.SmallCategory;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
@@ -72,12 +74,7 @@ public class ProductService {
     }
 
     @Transactional
-    public List<ProductDto> getPopularTen(GetRequestDto getRequestDto) {
-//        String query =
-//                "SELECT p FROM Product p " +
-//                "WHERE p.animalCategory = :animalCategory " +
-//                //"AND p.productCategory = :productCategory " +
-//                "ORDER BY p.wishCount DESC";
+    public List<ProductDto> getPopularTen(Integer animalCategory, Integer productCategory) {
         String query =
                 "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
                         "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
@@ -89,22 +86,18 @@ public class ProductService {
                         "ORDER BY p.wishCount DESC";
 
         TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
-        jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
-        jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
+        jpqlQuery.setParameter("animalCategory", animalCategory);
+        jpqlQuery.setParameter("productCategory", productCategory);
         jpqlQuery.setMaxResults(10); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
 
         return jpqlQuery.getResultList();
     }
 
     @Transactional
-    public List<ProductDto> getRecommendThree(GetRequestDto getRequestDto) {
-//        String query =
-//                "SELECT p " +
-//                        "FROM Product p " +
-//                        "WHERE p.animalCategory = :animalCategory " +
-//                        //"AND p.productCategory = :productCategory " +
-//                        "ORDER BY p.stock DESC";
+    public String getRecommendThree(Integer animalCategory, Integer[] productCategories) {
+        JSONArray jsonArray = new JSONArray();
 
+        for (Integer productCategory : productCategories) {
         String query =
                 "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
                         "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
@@ -112,38 +105,60 @@ public class ProductService {
                         ") " +
                         "FROM Product p " +
                         "WHERE p.animalCategory = :animalCategory " +
-                        //"AND p.productCategory = :productCategory " +
+                        "AND p.productCategory = :productCategory " +
                         "ORDER BY p.stock DESC";
 
         TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
-        jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
-        //jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
+        jpqlQuery.setParameter("animalCategory", animalCategory);
+        jpqlQuery.setParameter("productCategory", productCategory);
         jpqlQuery.setMaxResults(3); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
+        List<ProductDto> resultList = jpqlQuery.getResultList();
 
-        return jpqlQuery.getResultList();
+        JSONObject resultObject = new JSONObject();
+        if(animalCategory == 3) {
+            resultObject.put("product", resultList);
+            resultObject.put("category", SmallCategory.getByCode(productCategory));
+        } else{
+            resultObject.put("product", resultList);
+            resultObject.put("category", ProductCategory.getByCode(productCategory));
+        }
+        jsonArray.put(resultObject);
+        }
+        return jsonArray.toString();
     }
 
     @Transactional
-    public List<ProductDto> getMostPurchasedTree(GetRequestDto getRequestDto) {
-//        String query =
-//                "SELECT p FROM Product p " +
-//                        "WHERE p.animalCategory = :animalCategory " +
-//                        "ORDER BY p.purchaseCount DESC";
+    public String getMostPurchased(Integer animalCategory, Integer[] productCategories) {
+        JSONArray jsonArray = new JSONArray();
 
-        String query =
-                "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
-                        "p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
-                        ") " +
-                        "FROM Product p " +
-                        "WHERE p.animalCategory = :animalCategory " +
-                        //"AND p.productCategory = :productCategory " +
-                        "ORDER BY p.purchaseCount DESC";
+        for (Integer productCategory : productCategories) {
+            String query =
+                    "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
+                            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                            "p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
+                            ") " +
+                            "FROM Product p " +
+                            "WHERE p.animalCategory = :animalCategory " +
+                            "AND p.productCategory = :productCategory " +
+                            "ORDER BY p.purchaseCount DESC";
 
-        TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
-        jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
-        jpqlQuery.setMaxResults(3); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
-        return jpqlQuery.getResultList();
+            TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
+            jpqlQuery.setParameter("animalCategory", animalCategory);
+            jpqlQuery.setParameter("productCategory", productCategory);
+            jpqlQuery.setMaxResults(4); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
+            List<ProductDto> resultList = jpqlQuery.getResultList();
+
+            JSONObject resultObject = new JSONObject();
+            if(animalCategory == 3) {
+                resultObject.put("product", resultList);
+                resultObject.put("category", SmallCategory.getByCode(productCategory));
+            } else{
+                resultObject.put("product", resultList);
+                resultObject.put("category", ProductCategory.getByCode(productCategory));
+            }
+            jsonArray.put(resultObject);
+        }
+        return jsonArray.toString();
     }
 
     @Transactional
@@ -260,6 +275,43 @@ public class ProductService {
         }
         return "";
     }
+
+    public JSONArray generateJsonResponse(Map<String, List<ProductDto>> resultMap) {
+        JSONArray jsonArray = new JSONArray();
+
+        for (Map.Entry<String, List<ProductDto>> entry : resultMap.entrySet()) {
+            String category = entry.getKey();
+            List<ProductDto> products = entry.getValue();
+
+            JSONArray productArray = new JSONArray();
+            for (ProductDto product : products) {
+                // ProductDto의 내용을 JSON 형태로 변환하여 productArray에 추가
+                JSONObject productObject = new JSONObject();
+                productObject.put("id", product.getId());
+                productObject.put("imageUrl", product.getImageUrl());
+                productObject.put("animalCategory", product.getAnimalCategory());
+                productObject.put("productCategory", product.getProductCategory());
+                productObject.put("productName", product.getProductName());
+                productObject.put("price", product.getPrice());
+                productObject.put("description", product.getDescription());
+                productObject.put("stock", product.getStock());
+                productObject.put("wishCount", product.getWishCount());
+                productObject.put("purchaseCount", product.getPurchaseCount());
+                productObject.put("createdAt", product.getCreatedAt());
+
+                productArray.put(productObject);
+            }
+
+            JSONObject categoryObject = new JSONObject();
+            categoryObject.put("category", category);
+            categoryObject.put("product", productArray);
+
+            jsonArray.put(categoryObject);
+        }
+
+        return jsonArray;
+    }
+
 }
 
 

@@ -1,5 +1,8 @@
 package com.supercoding.commerce03.web.dto.product;
 
+import com.supercoding.commerce03.web.dto.product.util.AnimalCategory;
+import com.supercoding.commerce03.web.dto.product.util.ProductCategory;
+import com.supercoding.commerce03.web.dto.product.util.SmallCategory;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -24,7 +27,7 @@ public class ProductDto {
         this.id = id;
         this.imageUrl = imageUrl;
         this.animalCategory = AnimalCategory.getByCode(animalCategory);
-        this.productCategory = productCategory == 3 ?
+        this.productCategory = animalCategory == 3 ?
                 SmallCategory.getByCode(productCategory) :
                 ProductCategory.getByCode(productCategory);
         this.productName = productName;

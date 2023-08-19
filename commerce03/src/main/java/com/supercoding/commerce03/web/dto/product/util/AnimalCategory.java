@@ -1,4 +1,4 @@
-package com.supercoding.commerce03.web.dto.product;
+package com.supercoding.commerce03.web.dto.product.util;
 
 import lombok.Getter;
 
