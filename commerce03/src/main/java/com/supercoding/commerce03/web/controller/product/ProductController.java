@@ -37,6 +37,7 @@ public class ProductController {
      * @param animalCategory
      * @return
      */
+    @CrossOrigin(origins = "*")
     @GetMapping("v1/api/banner/{animalCategory}")
     public ResponseEntity<List<ProductDto>> getBanner(
             @PathVariable(required = false) String animalCategory
@@ -54,6 +55,7 @@ public class ProductController {
      * @param productCategory
      * @return
      */
+    @CrossOrigin(origins = "*")
     @GetMapping("v1/api/popular/{animalCategory}/{productCategory}")
     public ResponseEntity<List<ProductDto>> getPopular(
             @PathVariable(required = false) String animalCategory,
@@ -73,6 +75,7 @@ public class ProductController {
      * @param animalCategory
      * @return
      */
+    @CrossOrigin(origins = "*")
     @GetMapping("v1/api/recommend/{animalCategory}")
     public ResponseEntity<List<ProductDto>> getRecommends(
             @PathVariable(required = false) String animalCategory
@@ -90,11 +93,11 @@ public class ProductController {
      * @return
      */
     @GetMapping("v1/api/product/detail/{productId}")
-    public ResponseEntity<List<Product>> getProduct(
+    public ResponseEntity<List<ProductDto>> getProduct(
             @PathVariable Integer productId
 
     ) {
-        List<Product> product = productService.getProduct(productId);
+        List<ProductDto> product = productService.getProduct(productId);
         return ResponseEntity.ok(product);
     }
 
@@ -111,7 +114,7 @@ public class ProductController {
             "v1/api/product/{animalCategory}" ,
             "v1/api/product/{animalCategory}/{productCategory}",
             "v1/api/product/{animalCategory}/{productCategory}/{sortBy}"})
-    public ResponseEntity<List<Product>> getProducts(
+    public ResponseEntity<List<ProductDto>> getProducts(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -127,7 +130,7 @@ public class ProductController {
         int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
 
         //메인페이지 상품리스트
-        List<Product> products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
+        List<ProductDto> products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
 
         return ResponseEntity.ok(products);
     }
@@ -137,12 +140,12 @@ public class ProductController {
      * @return
      */
     @GetMapping("v1/api/product/wish")
-    public ResponseEntity<List<Wish>> getWishList(){
+    public ResponseEntity<List<GetWishListDto>> getWishList(){
         //TODO: 로그인한 유저정보 가져오기
         //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         //String email = authentication.getName();
         long userId = 1L;
-        List<Wish> wishList = productService.getWishList(userId);
+        List<GetWishListDto> wishList = productService.getWishList(userId);
         return ResponseEntity.ok(wishList);
     }
 
