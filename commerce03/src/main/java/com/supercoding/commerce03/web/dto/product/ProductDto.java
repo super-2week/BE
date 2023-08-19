@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 public class ProductDto {
     private Long id;
     private String imageUrl;
-    private Integer animalCategory;
-    private Integer productCategory;
+    private String animalCategory;
+    private String productCategory;
     private String productName;
     private Integer price;
     private String description;
@@ -23,8 +23,10 @@ public class ProductDto {
     public ProductDto(Long id, String imageUrl, Integer animalCategory, Integer productCategory, String productName, Integer price, String description, Integer stock, Integer wishCount, Integer purchaseCount, LocalDateTime createdAt) {
         this.id = id;
         this.imageUrl = imageUrl;
-        this.animalCategory = animalCategory;
-        this.productCategory = productCategory;
+        this.animalCategory = AnimalCategory.getByCode(animalCategory);
+        this.productCategory = productCategory == 3 ?
+                SmallCategory.getByCode(productCategory) :
+                ProductCategory.getByCode(productCategory);
         this.productName = productName;
         this.price = price;
         this.description = description;

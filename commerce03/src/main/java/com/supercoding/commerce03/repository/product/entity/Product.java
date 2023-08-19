@@ -33,7 +33,7 @@ public class Product {
 	@Column(name = "product_id", nullable = false)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "store_id")
 	private Store store;
 

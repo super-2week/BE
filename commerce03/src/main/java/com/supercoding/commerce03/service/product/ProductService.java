@@ -9,6 +9,7 @@ import com.supercoding.commerce03.repository.wish.entity.Wish;
 import com.supercoding.commerce03.service.product.exception.ProductErrorCode;
 import com.supercoding.commerce03.service.product.exception.ProductException;
 import com.supercoding.commerce03.web.dto.product.GetRequestDto;
+import com.supercoding.commerce03.web.dto.product.GetWishListDto;
 import com.supercoding.commerce03.web.dto.product.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -30,12 +32,14 @@ public class ProductService {
     private final UserRepository userRepository;
 
     @Transactional
-    public List<Product> getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
+    public List<ProductDto> getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
         int pageSize = 15;
 
         String query =
-                "SELECT p FROM Product p " +
-                "LEFT JOIN FETCH p.store " +
+                "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
+                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                        "p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt) " +
+                "FROM Product p " +
                 "WHERE p.animalCategory = :animalCategory " +
                 "AND p.productCategory = :productCategory ";
 
@@ -54,7 +58,7 @@ public class ProductService {
             query += "ORDER BY p.price ASC";
         }
 
-        TypedQuery<Product> jpqlQuery = entityManager.createQuery(query, Product.class);
+        TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
         jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
         jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
         if(searchWord != null && !searchWord.isEmpty()) {
@@ -81,12 +85,12 @@ public class ProductService {
                         ") " +
                         "FROM Product p " +
                         "WHERE p.animalCategory = :animalCategory " +
-                        //"AND p.productCategory = :productCategory " +
+                        "AND p.productCategory = :productCategory " +
                         "ORDER BY p.wishCount DESC";
 
         TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
         jpqlQuery.setParameter("animalCategory", getRequestDto.getAnimalCategory());
-        //jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
+        jpqlQuery.setParameter("productCategory", getRequestDto.getProductCategory());
         jpqlQuery.setMaxResults(10); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
 
         return jpqlQuery.getResultList();
@@ -143,18 +147,21 @@ public class ProductService {
     }
 
     @Transactional
-    public List<Product> getProduct(Integer productId) {
+    public List<ProductDto> getProduct(Integer productId) {
 
         try {
-            String query = "SELECT p FROM Product p LEFT JOIN FETCH p.store WHERE p.id = :productId";
-            TypedQuery<Product> jpqlQuery = entityManager.createQuery(query, Product.class);
+            String query =
+                    "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
+                            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                            "p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
+                            ") " +
+                            "FROM Product p WHERE p.id = :productId";
+            TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
             jpqlQuery.setParameter("productId", (long)productId);
-
             return jpqlQuery.getResultList();
         } catch (NoResultException e) {
-            //TODO : Exception 만들기
-
-            return null;
+            //status 400
+            throw new ProductException(ProductErrorCode.THIS_PRODUCT_DOES_NOT_EXIST);
         }
     }
 
@@ -174,9 +181,12 @@ public class ProductService {
     }
 
     @Transactional
-    public List<Wish> getWishList(long userId) {
+    public List<GetWishListDto> getWishList(long userId) {
         User validatedUser = validateUser(userId);
-        return wishRepository.findByUserId(validatedUser.getId()); //없으면 빈 배열을 반환해야 한다.
+        List<Wish> wishList = wishRepository.findByUserId(validatedUser.getId()); //없으면 빈 배열을 반환해야 한다.
+        return wishList.stream()
+                .map(wish -> new GetWishListDto(wish.getId(), wish.getProduct()))
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -208,8 +218,8 @@ public class ProductService {
         String[] animalIds = {"dog", "cat", "small"};
         String[] productLabels = {"food", "snack", "clean", "tableware", "house", "cloth"};
         String[] productValues = {"사료", "간식", "위생", "급식기/급수기", "집/울타리", "의류/악세사리"};
-        String[] smallProductLabels = {"food", "equipment"};
-        String[] smallProductValues = {"사료", "기구"};
+        String[] smallProductLabels = {"food", "equipment", "house"};
+        String[] smallProductValues = {"사료", "기구", "집/울타리"};
 
         for (String animalId : animalIds) {
             List<Map<String, String>> productCategoryList = new ArrayList<>();
@@ -232,12 +242,23 @@ public class ProductService {
 
             Map<String, Object> naviDataMap = new HashMap<>();
             naviDataMap.put("id", animalId);
+            naviDataMap.put("label", getAnimalLabel(animalId));
             naviDataMap.put("productCategory", productCategoryList);
-
             naviData.add(naviDataMap);
         }
         return naviData;
 
+    }
+
+    private String getAnimalLabel(String animalId) {
+        if ("dog".equals(animalId)) {
+            return "강아지";
+        } else if ("cat".equals(animalId)) {
+            return "고양이";
+        } else if ("small".equals(animalId)) {
+            return "소동물";
+        }
+        return "";
     }
 }
 

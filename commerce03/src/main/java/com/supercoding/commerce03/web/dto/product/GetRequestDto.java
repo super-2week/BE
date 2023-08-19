@@ -57,7 +57,7 @@ public class GetRequestDto {
                 return 2;
             case "clean":
                 return 3;
-            case "bowl":
+            case "tableware":
                 return 4;
             case "house":
                 return 5;
