@@ -16,6 +16,10 @@ public class UpdateProfile {
 
         private String password;
         private String checkPassword;
+        private String address;
+        private String  detailAddress;
+
+        private String imageUrl;
 
 }
 

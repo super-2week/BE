@@ -10,6 +10,8 @@ import com.supercoding.commerce03.service.order.exception.OrderErrorResponse;
 import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.service.review.exception.ReviewErrorResponse;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
+import com.supercoding.commerce03.service.user.exception.UserErrorResponse;
+import com.supercoding.commerce03.service.user.exception.UserException;
 import com.supercoding.commerce03.web.advice.exception.ErrorResponse;
 import com.supercoding.commerce03.web.advice.exception.type.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +72,16 @@ public class GlobalExceptionHandler {
 						.errorCode(e.getErrorCode())
 						.errorMessage(e.getErrorMessage())
 						.build());
+
+	}
+	@ExceptionHandler(UserException.class)
+	public ResponseEntity<?> handleUserException(UserException e){
+
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+			.body(UserErrorResponse.builder()
+				.errorCode(e.getErrorCode())
+				.errorMessage(e.getErrorMessage())
+				.build());
 
 	}
 

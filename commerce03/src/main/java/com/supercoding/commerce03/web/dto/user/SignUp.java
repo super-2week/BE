@@ -18,6 +18,7 @@ public class SignUp {
     private String password;
     private String checkPassword;
     private String address;
+    private String detailAddress;
     private String phoneNumber;
     private String email;
 
