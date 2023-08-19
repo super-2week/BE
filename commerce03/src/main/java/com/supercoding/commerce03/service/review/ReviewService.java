@@ -65,11 +65,26 @@ public class ReviewService {
 		Review validateReview = validateReview(inputReviewId);
 
 		if (isNotReviewer(validatedUser.getId(), validateReview)) {
-			throw new ReviewException(ReviewErrorCode.REVIEW_PERMISSION_DENIED);
+			throw new ReviewException(ReviewErrorCode.NO_PERMISSION_TO_UPDATE);
 		}
 
 		validateReview.setTitle(request.getTitle());
 		validateReview.setContent(request.getContent());
+
+		return ReviewDto.fromEntity(validateReview);
+	}
+
+	@Transactional
+	public ReviewDto deleteReview(Long reviewId, Long userId){
+
+		User validatedUser = validateUser(userId);
+		Review validateReview = validateReview(reviewId);
+
+		if (isNotReviewer(validatedUser.getId(), validateReview)) {
+			throw new ReviewException(ReviewErrorCode.NO_PERMISSION_TO_DELETE);
+		}
+
+		validateReview.setIsDeleted(true);
 
 		return ReviewDto.fromEntity(validateReview);
 	}
