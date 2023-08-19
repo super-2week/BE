@@ -10,6 +10,8 @@ public enum ReviewErrorCode {
 
 	//status(HttpStatus.FORBIDDEN) 403
 	REVIEW_PERMISSION_DENIED("이 상품에 대한 리뷰를 작성할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+	NO_PERMISSION_TO_UPDATE("이 상품에 대한 리뷰를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+	NO_PERMISSION_TO_DELETE("이 상품에 대한 리뷰를 삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN),
 
 	//status(HttpStatus.NOT_FOUND) 404
 	USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND),
