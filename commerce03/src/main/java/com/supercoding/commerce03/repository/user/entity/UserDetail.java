@@ -45,8 +45,7 @@ public class UserDetail {
 	@Column(name = "email", nullable = false)
 	private String email;
 
-
-	public static UserDetail toEntity(User user, SignUp signUp,String passwordEncode){
+	public static UserDetail toEntity(User user, SignUp signUp, String passwordEncode) {
 		return UserDetail.builder()
 			.email(signUp.getEmail())
 			.password(passwordEncode)

@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.service.security;
 
+import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import com.supercoding.commerce03.service.user.UserService;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+@Slf4j
 @RequiredArgsConstructor
 public class TokenFilter extends OncePerRequestFilter {
 
@@ -45,12 +48,14 @@ public class TokenFilter extends OncePerRequestFilter {
             return;
         }
         //토큰으로 로그인 ID(이메일)을 가져오기
-        String userEmail = String.valueOf(JwtTokenProvider.getLoginId(token));
+        Long userId = JwtTokenProvider.getLoginId(token);
         //가져온 사용자의 정보로 실제 사용자 정보를 가져오기
-        UserDetail loginUser = userService.getLoginUser(userEmail);
+        log.info("잡았다 {}",userId);
+        User loginUser = userService.getLoginUser(userId);
+        log.info("잡혔다 {}",loginUser);
         //사용자 정보를 기반으로 인증 토큰 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            loginUser.getEmail(), null, List.of(new SimpleGrantedAuthority("USER"))
+            loginUser.getId(), null, List.of(new SimpleGrantedAuthority("USER"))
         );
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

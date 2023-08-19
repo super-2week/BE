@@ -9,4 +9,7 @@ public interface UserDetailRepository extends JpaRepository<UserDetail, Long> {
     boolean existsByEmail(String email);
 
     Optional<UserDetail> findByEmail(String email);
+
+    UserDetail findByUserId(Long userId);
+
 }

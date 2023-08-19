@@ -8,34 +8,39 @@ import com.supercoding.commerce03.service.security.JwtTokenProvider;
 import com.supercoding.commerce03.service.user.exception.UserErrorCode;
 import com.supercoding.commerce03.service.user.exception.UserException;
 import com.supercoding.commerce03.web.dto.user.Login;
+import com.supercoding.commerce03.web.dto.user.ProfileResponse;
 import com.supercoding.commerce03.web.dto.user.SignUp;
+import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository userRepository;
     private final UserDetailRepository userDetailRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
 
     public String signUp(SignUp signUp) {
-   //비지니스 로직(들어오는것들을 검증하는 부분)
+        //비지니스 로직(들어오는것들을 검증하는 부분)
         emailDuplicate(signUp.getEmail());
         validatedPhoneNumber(signUp.getPhoneNumber());
         validatedPassword(signUp.getPassword());
-        checkPassword(signUp.getPassword(),signUp.getCheckPassword());
+        checkPassword(signUp.getPassword(), signUp.getCheckPassword());
 
-   //검증된 정보들
+        //검증된 정보들
 
         User user = userRepository.save(User.toEntity(signUp));
         log.info("잡았다");
-        userDetailRepository.save(UserDetail.toEntity(user,signUp,passwordEncoder.encode(signUp.getPassword())));
+        userDetailRepository.save(
+            UserDetail.toEntity(user, signUp, passwordEncoder.encode(signUp.getPassword())));
         log.info("잡았다");
 
         return "회원가입이 성공적으로 완료되었습니다";
@@ -43,39 +48,42 @@ public class UserService {
 
     public void emailDuplicate(String email) {
         boolean checkEmail = userDetailRepository.existsByEmail(email);
-        if(checkEmail){
+        if (checkEmail) {
             throw new UserException(UserErrorCode.EMAIL_DUPLICATION);
         }
     }
+
     public void validatedPhoneNumber(String phoneNumber) {
-        if(phoneNumber.length() != 11){
+        if (phoneNumber.length() != 11) {
             throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER);
         }
     }
-    public void validatedPassword(String password){
-        if(password.length() < 8){
+
+    public void validatedPassword(String password) {
+        if (password.length() < 8) {
             throw new UserException(UserErrorCode.INVALID_PASSWORD);
         }
-        if(!password.matches("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$")){
+        if (!password.matches(
+            "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$")) {
             throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_PATTERN);
         }
     }
-    public void checkPassword(String password ,String checkPassword){
-        if(!password.equals(checkPassword)){
+
+    public void checkPassword(String password, String checkPassword) {
+        if (!password.equals(checkPassword)) {
             throw new UserException(UserErrorCode.MISMATCH_PASSWORD);
         }
     }
 
     public Login.Response login(Login.Request loginRequest) {
-        Optional<UserDetail>optionalUserDetail = userDetailRepository.findByEmail(loginRequest.getEmail());
+        Optional<UserDetail> optionalUserDetail = userDetailRepository.findByEmail(
+            loginRequest.getEmail());
 
-        if (optionalUserDetail.isEmpty()){
+        if (optionalUserDetail.isEmpty()) {
             throw new UserException(UserErrorCode.INVALID_SIGNUP_FILED);
         }
         UserDetail loginUser = optionalUserDetail.get();
-        log.info("여기다! {}",loginRequest.getPassword());
-        log.info("여기다! {}",loginUser.getPassword());
-        if(!passwordEncoder.matches(loginRequest.getPassword(),loginUser.getPassword())){
+        if (!passwordEncoder.matches(loginRequest.getPassword(), loginUser.getPassword())) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
         }
         String token = makeLoginResponse(loginUser.getUser(), loginUser);
@@ -87,18 +95,54 @@ public class UserService {
             .build();
     }
 
-    public String makeLoginResponse(User user,UserDetail loginUser){
-        return JwtTokenProvider.createToken(user,loginUser);
+    public String makeLoginResponse(User user, UserDetail loginUser) {
+        return JwtTokenProvider.createToken(user, loginUser);
     }
 
-    public UserDetail getLoginUser(String userEmail) {
-        if(userEmail == null){
+    public User getLoginUser(Long userId) {
+        if (userId == null) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
         }
-        Optional<UserDetail>optionalUserDetail = userDetailRepository.findByEmail(userEmail);
-        if(optionalUserDetail.isEmpty()){
+        Optional<User> optionalUser = userRepository.findById(userId);
+        log.info("여기네 {}", optionalUser.isEmpty());
+        if (optionalUser.isEmpty()) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
         }
-        return optionalUserDetail.get();
+        return optionalUser.get();
+    }
+
+    @Transactional
+    public String deleteUser(Long userId) {
+        log.info("여기네 {}", userId);
+        if (userId == null) {
+            throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
+        }
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserException(UserErrorCode.NOT_AUTHORIZED));
+
+        user.setIsDeleted(true);
+        return user.getUserName();
+    }
+
+    public ProfileResponse getProfile(Long userId) {
+        UserDetail userDetail = userDetailRepository.findByUserId(userId);
+        if (userId == null) {
+            throw new UserException(UserErrorCode.USER_NOT_FOUND);
+        }
+        return ProfileResponse.fromEntity(userDetail);
+    }
+
+    public String updateUser(Long userId, UpdateProfile updateProfile) {
+
+        validatedPassword(updateProfile.getPassword());//비밀번호 정책
+        checkPassword(updateProfile.getPassword(), updateProfile.getCheckPassword());//입력받은 비밀번호 2중 검증
+
+        UserDetail userDetail = userDetailRepository.findByUserId(userId);//회원의 ID로 접근 권한 처리
+        if (userId == null) {
+            throw new UserException(UserErrorCode.NOT_AUTHORIZED);
+        }
+        userDetail.setPassword(passwordEncoder.encode(updateProfile.getPassword()));
+        userDetailRepository.save(userDetail);
+        return "회원수정이 성공적으로 완료되었습니다";
     }
 }
