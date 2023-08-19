@@ -1,7 +1,9 @@
 package com.supercoding.commerce03.web.dto.product;
 
 import com.supercoding.commerce03.repository.product.entity.Product;
-import lombok.Builder;
+import com.supercoding.commerce03.web.dto.product.util.AnimalCategory;
+import com.supercoding.commerce03.web.dto.product.util.ProductCategory;
+import com.supercoding.commerce03.web.dto.product.util.SmallCategory;
 import lombok.Getter;
 import lombok.Setter;
 

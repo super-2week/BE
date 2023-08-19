@@ -3,6 +3,8 @@ package com.supercoding.commerce03.web.dto.product;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 public class GetRequestDto {
@@ -13,9 +15,10 @@ public class GetRequestDto {
 
     public GetRequestDto(String animalCategory, String productCategory, String sortBy) {
         this.animalCategory = animalCategoryConvert(animalCategory);
-        this.productCategory = productCategoryConvert(productCategory);
+        this.productCategory = productCategoryConvert(animalCategory, productCategory);
         this.sortBy = sortByConvert(sortBy);
     }
+
 
     public GetRequestDto(String animalCategory) {
         this.animalCategory = animalCategoryConvert(animalCategory);
@@ -23,7 +26,7 @@ public class GetRequestDto {
 
     public GetRequestDto(String animalCategory, String productCategory) {
         this.animalCategory = animalCategoryConvert(animalCategory);
-        this.productCategory = productCategoryConvert(productCategory);
+        this.productCategory = productCategoryConvert(animalCategory, productCategory);
     }
 
     public Integer animalCategoryConvert(String animalCategory) {
@@ -38,35 +41,45 @@ public class GetRequestDto {
                 return 2;
             case "small":
                 return 3;
-            case "etc":
-                return 4;
             default:
                 return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
         }
     }
 
-    public Integer productCategoryConvert(String productCategory) {
+    public Integer productCategoryConvert(String animalCategory, String productCategory) {
         if (productCategory == null) {
             return 1; // 기본값 설정 또는 다른 로직 추가
         }
 
-        switch (productCategory) {
-            case "food":
-                return 1;
-            case "snack":
-                return 2;
-            case "clean":
-                return 3;
-            case "tableware":
-                return 4;
-            case "house":
-                return 5;
-            case "cloth":
-                return 6;
-            default:
-                return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
+        if(Objects.equals(animalCategory, "small")){
+            switch (productCategory) {
+                case "food":
+                    return 1;
+                case "equipment":
+                    return 2;
+                case "house":
+                    return 3;
+                default:
+                    return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
+            }
+        }else{
+            switch (productCategory) {
+                case "food":
+                    return 1;
+                case "snack":
+                    return 2;
+                case "clean":
+                    return 3;
+                case "tableware":
+                    return 4;
+                case "house":
+                    return 5;
+                case "cloth":
+                    return 6;
+                default:
+                    return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
+            }
         }
-
     }
 
     public String sortByConvert(String sortBy) {
@@ -84,8 +97,6 @@ public class GetRequestDto {
             default:
                 return "price"; // 또는 다른 기본값 또는 에러 처리 로직 추가
         }
-
-
     }
 }
 
