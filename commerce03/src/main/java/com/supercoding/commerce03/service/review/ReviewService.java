@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.relational.core.sql.render.RenderNamingStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +90,15 @@ public class ReviewService {
 		validateReview.setIsDeleted(true);
 
 		return ReviewDto.fromEntity(validateReview);
+	}
+
+	public Page<ReviewDto> getReview(Long productId, Long cursor, Integer pageSize){
+
+		validateProduct(productId);
+
+		Page<Review> reviews = reviewRepository.findAllByProductIdAndIsDeletedWithCursor(
+				productId, false, cursor, PageRequest.of(0, pageSize));
+		return reviews.map(ReviewDto::fromEntity);
 	}
 
 	private User validateUser(Long userId){
