@@ -8,10 +8,14 @@ import com.supercoding.commerce03.service.cart.exception.CartErrorResponse;
 import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.service.order.exception.OrderErrorResponse;
 import com.supercoding.commerce03.service.order.exception.OrderException;
-import com.supercoding.commerce03.service.payment.exception.PaymentErrorResponse;
-import com.supercoding.commerce03.service.payment.exception.PaymentException;
+
+import com.supercoding.commerce03.service.product.exception.ProductErrorResponse;
+import com.supercoding.commerce03.service.product.exception.ProductException;
+
 import com.supercoding.commerce03.service.review.exception.ReviewErrorResponse;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
+import com.supercoding.commerce03.service.user.exception.UserErrorResponse;
+import com.supercoding.commerce03.service.user.exception.UserException;
 import com.supercoding.commerce03.web.advice.exception.ErrorResponse;
 import com.supercoding.commerce03.web.advice.exception.type.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +73,27 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
 				.body(ReviewErrorResponse.builder()
+						.errorCode(e.getErrorCode())
+						.errorMessage(e.getErrorMessage())
+						.build());
+
+	}
+	@ExceptionHandler(UserException.class)
+	public ResponseEntity<?> handleUserException(UserException e){
+
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+			.body(UserErrorResponse.builder()
+				.errorCode(e.getErrorCode())
+				.errorMessage(e.getErrorMessage())
+				.build());
+
+	}
+
+	@ExceptionHandler(ProductException.class)
+	public ResponseEntity<?> handleProductException(ProductException e){
+
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+				.body(ProductErrorResponse.builder()
 						.errorCode(e.getErrorCode())
 						.errorMessage(e.getErrorMessage())
 						.build());

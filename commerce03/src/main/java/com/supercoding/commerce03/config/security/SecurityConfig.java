@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.supercoding.commerce03.web.advice.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -24,8 +25,8 @@ public class SecurityConfig {
             .and()
             .formLogin().disable()
             .csrf().disable()//세션과 진행 토큰 안정화
-            .cors()
-            .and()
+            .addFilterBefore(new CorsFilter(), UsernamePasswordAuthenticationFilter.class)
+            //.cors()
             .httpBasic().disable()
             .rememberMe().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

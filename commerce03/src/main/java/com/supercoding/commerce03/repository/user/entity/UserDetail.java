@@ -45,12 +45,15 @@ public class UserDetail {
 	@Column(name = "email", nullable = false)
 	private String email;
 
+	@Column(name = "detail_address", nullable = false)
+	private String detailAddress;
 
-	public static UserDetail toEntity(User user, SignUp signUp,String passwordEncode){
+	public static UserDetail toEntity(User user, SignUp signUp, String passwordEncode) {
 		return UserDetail.builder()
 			.email(signUp.getEmail())
 			.password(passwordEncode)
 			.address(signUp.getAddress())
+			.detailAddress(signUp.getDetailAddress())
 			.phoneNumber(signUp.getPhoneNumber())
 			.user(user)
 			.build();
