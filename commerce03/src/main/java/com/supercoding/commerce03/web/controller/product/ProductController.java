@@ -39,15 +39,14 @@ public class ProductController {
      * @param animalCategory
      * @return
      */
-    @Auth
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/banner/{animalCategory}")
     public ResponseEntity<String> getBanner(
             @PathVariable(required = false) String animalCategory
     ){
-        //TODO: 로그인한 유저정보 가져오기
-        Long userId = AuthHolder.getUserId();
-
+//        //TODO: 로그인한 유저정보 가져오기
+//        Long userId = AuthHolder.getUserId();
+        Long userId = 1L;
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
         log.info("배너상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
 
@@ -63,16 +62,16 @@ public class ProductController {
      */
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/popular/{animalCategory}/{productCategory}")
-    public ResponseEntity<List<ProductDto>> getPopular(
+    public ResponseEntity<List<ProductResponseDto>> getPopular(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory
     ){
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory);
-        log.info("인기상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
-        log.info("인기상품 용품분류: " + productCategory + getRequestDto.getProductCategory());
+        log.info("인기상품 동물분류: " + getRequestDto.getAnimalCategory());
+        log.info("인기상품 용품분류: " + getRequestDto.getProductCategory());
 
         //해당 카테고리 인기 Top10
-        List<ProductDto> popularList = productService.getPopularTen(getRequestDto);
+        List<ProductResponseDto> popularList = productService.getPopularTen(getRequestDto);
         return ResponseEntity.ok(popularList);
     }
 
@@ -100,11 +99,11 @@ public class ProductController {
      */
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/product/detail/{productId}")
-    public ResponseEntity<List<ProductDto>> getProduct(
+    public ResponseEntity<List<ProductResponseDto>> getProduct(
             @PathVariable Integer productId
 
     ) {
-        List<ProductDto> product = productService.getProduct(productId);
+        List<ProductResponseDto> product = productService.getProduct(productId);
         return ResponseEntity.ok(product);
     }
 
@@ -122,7 +121,7 @@ public class ProductController {
             "v1/api/product/{animalCategory}" ,
             "v1/api/product/{animalCategory}/{productCategory}",
             "v1/api/product/{animalCategory}/{productCategory}/{sortBy}"})
-    public ResponseEntity<List<ProductDto>> getProducts(
+    public ResponseEntity<String> getProducts(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -138,7 +137,7 @@ public class ProductController {
         int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
 
         //메인페이지 상품리스트
-        List<ProductDto> products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
+        String products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
 
         return ResponseEntity.ok(products);
     }
@@ -170,7 +169,6 @@ public class ProductController {
         //TODO: 로그인한 유저정보 가져오기
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String email = authentication.getName();
-
         long userId = 1L;
         Wish wish = productService.addWishList(userId, (long)productId);
         return ResponseEntity.ok(new ResponseMessageDto("상품명: " + wish.getProduct().getProductName() + "이(가) 관심상품으로 등록되었습니다."));

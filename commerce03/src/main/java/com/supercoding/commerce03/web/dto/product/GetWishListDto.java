@@ -26,13 +26,16 @@ public class GetWishListDto {
     private LocalDateTime createdAt;
 
     public GetWishListDto(Long wishId, Product product) {
+        String animalCategory = AnimalCategory.getByCode(product.getAnimalCategory());
+        String productCategory = product.getAnimalCategory() == 3 ?
+                SmallCategory.getByCode(product.getProductCategory()):
+                ProductCategory.getByCode(product.getProductCategory());
+
         this.wishId = wishId;
         this.productId = product.getId();
         this.imageUrl = product.getImageUrl();
-        this.animalCategory = AnimalCategory.getByCode(product.getAnimalCategory());
-        this.productCategory = product.getAnimalCategory() == 3 ?
-                SmallCategory.getByCode(product.getProductCategory()) :
-                ProductCategory.getByCode(product.getProductCategory());
+        this.animalCategory = animalCategory;
+        this.productCategory = productCategory;
         this.productName = product.getProductName();
         this.price = product.getPrice();
         this.description = product.getDescription();

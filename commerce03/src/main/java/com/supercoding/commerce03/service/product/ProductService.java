@@ -15,17 +15,17 @@ import com.supercoding.commerce03.web.dto.product.util.SmallCategory;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
+
 @Service
 public class ProductService {
 
@@ -34,22 +34,34 @@ public class ProductService {
     private final WishRepository wishRepository;
     private final UserRepository userRepository;
     private final ConvertCategory convertCategory;
+    private final SearchWishList searchWishList;
+
+    public ProductService(EntityManager entityManager, ProductRepository productRepository, WishRepository wishRepository, UserRepository userRepository, ConvertCategory convertCategory, SearchWishList searchWishList) {
+        this.entityManager = entityManager;
+        this.productRepository = productRepository;
+        this.wishRepository = wishRepository;
+        this.userRepository = userRepository;
+        this.convertCategory = convertCategory;
+        this.searchWishList = searchWishList;
+    }
+
 
     @Transactional
-    public List<ProductDto> getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
+    public String getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
         int pageSize;
-        Boolean isLiked;
+        int totalLength = 0;
         Integer animalCategory = convertCategory.convertAnimalCategory(getRequestDto.getAnimalCategory());
         Integer productCategory = convertCategory.convertProductCategory(getRequestDto.getAnimalCategory(), getRequestDto.getProductCategory());
         String sortBy = convertCategory.convertSortBy(getRequestDto.getSortBy());
-
-
+        JSONObject resultObject = new JSONObject();
+        JSONArray resultArray = new JSONArray();
+        List resultList;
 
         String query =
                 "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, s.storeName, " +
-                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt) " +
-                "FROM Product p LEFT JOIN FETCH Store s " +
+                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName," +
+                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store) " +
+                "FROM Product p " +
                 "WHERE p.animalCategory = :animalCategory " +
                 "AND p.productCategory = :productCategory ";
 
@@ -84,21 +96,41 @@ public class ProductService {
 
         jpqlQuery.setFirstResult((pageNumber - 1) * pageSize); // Offset 계산
         jpqlQuery.setMaxResults(pageSize); // Limit 설정
+        List<ProductDto> products = jpqlQuery.getResultList();
+        List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
 
-        return jpqlQuery.getResultList();
+        if(pageNumber == 1){
+            totalLength = 32;
+        } else{
+            totalLength = 32 + (pageNumber - 2) * 12 + products.size();
+        }
+
+        if ("wishCount".equals(sortBy)) {
+            //인기순
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getWishCount).reversed()).collect(Collectors.toList());
+
+        } else if ("createdAt".equals(sortBy)) {
+            //최신순
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
+        } else {
+            // 기본 정렬 기준 (가격순)
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getPrice)).collect(Collectors.toList());
+        }
+        resultObject.put("products", resultList);
+        resultObject.put("totalLength", totalLength);
+        return resultArray.put(resultObject).toString();
     }
 
     @Transactional
-    public List<ProductDto> getPopularTen(GetRequestDto getRequestDto) {
+    public List<ProductResponseDto> getPopularTen(GetRequestDto getRequestDto) {
         Integer animalCategory = convertCategory.convertAnimalCategory(getRequestDto.getAnimalCategory());
         Integer productCategory = convertCategory.convertProductCategory(getRequestDto.getAnimalCategory(), getRequestDto.getProductCategory());
-
         String query =
                 "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, s.storeName, " +
-                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
+                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store" +
                         ") " +
-                        "FROM Product p LEFT JOIN FETCH Store s " +
+                        "FROM Product p " +
                         "WHERE p.animalCategory = :animalCategory " +
                         "AND p.productCategory = :productCategory " +
                         "ORDER BY p.wishCount DESC";
@@ -108,7 +140,9 @@ public class ProductService {
         jpqlQuery.setParameter("productCategory", productCategory);
         jpqlQuery.setMaxResults(10); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
 
-        return jpqlQuery.getResultList();
+        List<ProductDto> products = jpqlQuery.getResultList();
+        List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
+        return checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getWishCount).reversed()).collect(Collectors.toList());
     }
 
     @Transactional
@@ -120,10 +154,10 @@ public class ProductService {
         for (Integer productCategory : productCategories) {
         String query =
                 "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, s.storeName, " +
-                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
+                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store" +
                         ") " +
-                        "FROM Product p LEFT JOIN FETCH Store s " +
+                        "FROM Product p " +
                         "WHERE p.animalCategory = :animalCategory " +
                         "AND p.productCategory = :productCategory " +
                         "ORDER BY p.stock DESC";
@@ -132,7 +166,9 @@ public class ProductService {
         jpqlQuery.setParameter("animalCategory", animalCategory);
         jpqlQuery.setParameter("productCategory", productCategory);
         jpqlQuery.setMaxResults(3); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
-        List<ProductDto> resultList = jpqlQuery.getResultList();
+        List<ProductDto> products = jpqlQuery.getResultList();
+        List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
+        List<ProductResponseDto> resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).collect(Collectors.toList());
 
         JSONObject resultObject = new JSONObject();
         if(animalCategory == 3) {
@@ -156,10 +192,10 @@ public class ProductService {
         for (Integer productCategory : productCategories) {
             String query =
                     "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, s.storeName, " +
-                            "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
+                            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                            "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store" +
                             ") " +
-                            "FROM Product p LEFT JOIN FETCH Store s " +
+                            "FROM Product p " +
                             "WHERE p.animalCategory = :animalCategory " +
                             "AND p.productCategory = :productCategory " +
                             "ORDER BY p.purchaseCount DESC";
@@ -168,9 +204,9 @@ public class ProductService {
             jpqlQuery.setParameter("animalCategory", animalCategory);
             jpqlQuery.setParameter("productCategory", productCategory);
             jpqlQuery.setMaxResults(4); // JPQL은 LIMIT 쿼리를 지원하지 않는다고 한다.
-            List<ProductDto> resultList = jpqlQuery.getResultList();
-
-
+            List<ProductDto> products = jpqlQuery.getResultList();
+            List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
+            List<ProductResponseDto> resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).collect(Collectors.toList());
 
             JSONObject resultObject = new JSONObject();
             if(animalCategory == 3) {
@@ -186,18 +222,20 @@ public class ProductService {
     }
 
     @Transactional
-    public List<ProductDto> getProduct(Integer productId) {
+    public List<ProductResponseDto> getProduct(Integer productId) {
 
         try {
             String query =
                     "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, s.storeName, " +
-                            "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt" +
+                            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+                            "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store" +
                             ") " +
-                            "FROM Product p LEFT JOIN FETCH Store s WHERE p.id = :productId";
+                            "FROM Product p WHERE p.id = :productId";
             TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
             jpqlQuery.setParameter("productId", (long)productId);
-            return jpqlQuery.getResultList();
+            List<ProductDto> products = jpqlQuery.getResultList();
+            List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
+            return checkedProducts.stream().map(ProductResponseDto::fromEntity).collect(Collectors.toList());
         } catch (NoResultException e) {
             //status 400
             throw new ProductException(ProductErrorCode.THIS_PRODUCT_DOES_NOT_EXIST);
@@ -255,10 +293,10 @@ public class ProductService {
     public List<Map<String, Object>> getNaviData() {
         List<Map<String, Object>> naviData = new ArrayList<>();
         String[] animalIds = {"dog", "cat", "small"};
-        String[] productLabels = {"food", "snack", "clean", "tableware", "house", "cloth"};
-        String[] productValues = {"사료", "간식", "위생", "급식기/급수기", "집/울타리", "의류/악세사리"};
-        String[] smallProductLabels = {"food", "equipment", "house"};
-        String[] smallProductValues = {"사료", "기구", "집/울타리"};
+        String[] productLabels = {"food", "snack", "clean", "tableware", "house", "cloth", "etc"};
+        String[] productValues = {"사료", "간식", "위생", "급식기/급수기", "집/울타리", "의류/악세사리", "기타"};
+        String[] smallProductLabels = {"food", "equipment", "house", "etc"};
+        String[] smallProductValues = {"사료", "기구", "집/울타리", "기타"};
 
         for (String animalId : animalIds) {
             List<Map<String, String>> productCategoryList = new ArrayList<>();
