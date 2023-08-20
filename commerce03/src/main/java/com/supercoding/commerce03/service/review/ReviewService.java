@@ -10,10 +10,15 @@ import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.service.review.exception.ReviewErrorCode;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
 import com.supercoding.commerce03.web.dto.review.CreateReview;
+import com.supercoding.commerce03.web.dto.review.ModifyReview.Request;
 import com.supercoding.commerce03.web.dto.review.ReviewDto;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.relational.core.sql.render.RenderNamingStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +59,48 @@ public class ReviewService {
 		);
 	}
 
+	@Transactional
+	public ReviewDto modifyReview(Request request, Long userId){
+
+		Long inputReviewId = request.getReviewId();
+
+		User validatedUser = validateUser(userId);
+		Review validateReview = validateReview(inputReviewId);
+
+		if (isNotReviewer(validatedUser.getId(), validateReview)) {
+			throw new ReviewException(ReviewErrorCode.NO_PERMISSION_TO_UPDATE);
+		}
+
+		validateReview.setTitle(request.getTitle());
+		validateReview.setContent(request.getContent());
+
+		return ReviewDto.fromEntity(validateReview);
+	}
+
+	@Transactional
+	public ReviewDto deleteReview(Long reviewId, Long userId){
+
+		User validatedUser = validateUser(userId);
+		Review validateReview = validateReview(reviewId);
+
+		if (isNotReviewer(validatedUser.getId(), validateReview)) {
+			throw new ReviewException(ReviewErrorCode.NO_PERMISSION_TO_DELETE);
+		}
+
+		validateReview.setIsDeleted(true);
+
+		return ReviewDto.fromEntity(validateReview);
+	}
+
+	public Page<ReviewDto> getReview(Long productId, Long cursor, Integer pageSize){
+
+		validateProduct(productId);
+
+		Page<Review> reviews = reviewRepository.findAllByProductIdAndIsDeletedWithCursor(
+				productId, false, cursor, PageRequest.of(0, pageSize));
+		return reviews.map(ReviewDto::fromEntity);
+	}
+
 	private User validateUser(Long userId){
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new ReviewException(ReviewErrorCode.USER_NOT_FOUND));
@@ -63,6 +110,14 @@ public class ReviewService {
 		return productRepository.findById(productId)
 				.orElseThrow(
 						() -> new ReviewException(ReviewErrorCode.THIS_PRODUCT_DOES_NOT_EXIST));
+	}
+
+	private Review validateReview(Long reviewId){
+		Review review = reviewRepository.findByIdAndIsDeleted(reviewId, false);
+		if (review == null) {
+			throw new ReviewException(ReviewErrorCode.REVIEW_DOES_NOT_EXIST);
+		}
+		return review;
 	}
 
 	private boolean existReview(Long userId, Long productId){
@@ -75,5 +130,9 @@ public class ReviewService {
 		if (count <= 0) {
 			throw new ReviewException(ReviewErrorCode.REVIEW_PERMISSION_DENIED);
 		}
+	}
+
+	private boolean isNotReviewer(Long userId, Review review){
+		return !Objects.equals(userId, review.getUser().getId());
 	}
 }
