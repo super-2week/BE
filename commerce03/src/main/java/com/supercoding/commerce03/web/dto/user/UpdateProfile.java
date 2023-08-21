@@ -13,12 +13,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class UpdateProfile {
-
+        private String userName;
         private String password;
         private String checkPassword;
         private String address;
         private String  detailAddress;
-
         private String imageUrl;
 
 }
