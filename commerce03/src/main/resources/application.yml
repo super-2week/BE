@@ -6,3 +6,4 @@ spring:
   config:
     import:
       - classpath:mysql.yml
+      - classpath:s3.yml
