@@ -55,6 +55,12 @@ public class PaymentService {
         return Charge.Response.from(validatedUser);
     }
 
+//    public void chargePoint(Long userId,int amount){
+//        Payment payment = paymentRepository.findByUserId(userId);
+//        payment.setCoin(payment.getTotalCoin() + amount);
+//        userRepository.save(payment);
+//    }
+
     public Page<Charge.Response> findByPaymentId(Long userId, Pageable pageable) {
         Payment validatedUser = validateUser(userId);
         Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedUser.getId(), pageable);

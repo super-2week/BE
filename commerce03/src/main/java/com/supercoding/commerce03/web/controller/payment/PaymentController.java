@@ -14,6 +14,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.NumberFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +40,4 @@ public class PaymentController {
 
         return ResponseEntity.ok(paymentService.findByPaymentId(userId, pageable));
     }
-
-
 }
