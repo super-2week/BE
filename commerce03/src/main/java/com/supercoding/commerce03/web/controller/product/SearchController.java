@@ -23,7 +23,7 @@ public class SearchController {
             "v1/api/search/{animalCategory}" ,
             "v1/api/search/{animalCategory}/{productCategory}",
             "v1/api/search/{animalCategory}/{productCategory}/{sortBy}"})
-    public ResponseEntity<List<ProductResponseDto>> searchText(
+    public ResponseEntity<List<Object[]>> searchText(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -31,7 +31,7 @@ public class SearchController {
     ) {
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory, sortBy);
         //메인페이지 상품리스트
-        List<ProductResponseDto> product = searchService.searchFullText(getRequestDto, searchWord);
+        List<Object[]> product = searchService.searchFullText(getRequestDto, searchWord);
         return ResponseEntity.ok(product);
     }
 

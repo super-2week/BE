@@ -11,9 +11,15 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+//Full Text Index
     @Query(value =
-            "SELECT * FROM products p" +
-                    " WHERE MATCH(p.description, p.product_name) AGAINST(?1 IN BOOLEAN MODE)", nativeQuery = true)
-    List<Product> fullTextSearch(String searchWord);
+            "SELECT DISTINCT product_name FROM products p" +
+                    " WHERE MATCH(p.product_name) AGAINST(?1 IN BOOLEAN MODE)", nativeQuery = true)
+
+    //B-Tree Index
+//    @Query(value =
+//            "SELECT DISTINCT product_name FROM products p" +
+//                    " WHERE p.product_name LIKE ?1", nativeQuery = true)
+    List<Object[]> fullTextSearch(String searchWord);
 
 }
