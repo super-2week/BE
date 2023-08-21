@@ -34,19 +34,19 @@ public class UserDetail {
 	@JoinColumn(name = "user_id")
 	private User user;
 
-	@Column(name = "password", nullable = false)
+	@Column(name = "password")
 	private String password;
 
-	@Column(name = "address", nullable = false)
+	@Column(name = "address")
 	private String address;
 
-	@Column(name = "phone_number", nullable = false)
+	@Column(name = "phone_number")
 	private String phoneNumber;
 
 	@Column(name = "email", nullable = false)
 	private String email;
 
-	@Column(name = "detail_address", nullable = false)
+	@Column(name = "detail_address")
 	private String detailAddress;
 
 	public static UserDetail toEntity(User user, SignUp signUp, String passwordEncode) {
