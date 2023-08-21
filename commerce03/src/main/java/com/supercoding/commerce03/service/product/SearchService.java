@@ -2,7 +2,10 @@ package com.supercoding.commerce03.service.product;
 
 import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
+import com.supercoding.commerce03.web.dto.product.GetRequestDto;
 import com.supercoding.commerce03.web.dto.product.ProductDto;
+import com.supercoding.commerce03.web.dto.product.ProductResponseDto;
+import com.supercoding.commerce03.web.dto.product.SearchProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +15,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,18 +26,14 @@ public class SearchService {
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
-    public List<ProductDto> searchFullText(){
-        Long productId = 1000L;
-        String query =
-                "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
-                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store" +
-                        ") " +
-                        "FROM Product p WHERE p.id = :productId";
-        TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
-        jpqlQuery.setParameter("productId", productId);
+    public List<ProductResponseDto> searchFullText(GetRequestDto getRequestDto, String searchWord){
 
-        return jpqlQuery.getResultList();
+        System.out.println(searchWord);
+        String keyWord = searchWord + '*';
+        System.out.println(keyWord);
+        List<Product> products = productRepository.fullTextSearch(keyWord);
+        return products.stream().map(ProductResponseDto::fromSearch).collect(Collectors.toList());
+
     }
 
 }
