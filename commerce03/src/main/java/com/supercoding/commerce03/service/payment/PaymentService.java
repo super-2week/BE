@@ -6,12 +6,18 @@ import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
+import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.service.order.exception.OrderErrorCode;
 import com.supercoding.commerce03.service.order.exception.OrderException;
+import com.supercoding.commerce03.service.payment.exception.PaymentErrorCode;
+import com.supercoding.commerce03.service.payment.exception.PaymentException;
 import com.supercoding.commerce03.web.dto.payment.Cancel;
 import com.supercoding.commerce03.web.dto.payment.Charge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,51 +42,57 @@ public class PaymentService {
 
     @Transactional
     public Charge.Response chargeByCoin(Long userId, Charge.Request request) {
-        Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("금액이 부족합니다."));
-        int chargeTotalCoin = payment.getTotalCoin() + request.getCoin();
-        payment.setTotalCoin(chargeTotalCoin);
+        Payment validatedUser = validateUser(userId);
+        int chargeTotalCoin = validatedUser.getTotalCoin() + request.getCoin();
+        validatedUser.setTotalCoin(chargeTotalCoin);
         paymentDetailRepository.save(PaymentDetail.builder()
-                .payment(payment)
+                .payment(validatedUser)
                 .createdAt(LocalDateTime.now())
-                .businessType(payment.getBusinessType())
-                .totalPayCoin(payment.getTotalCoin())
-                .payCoin(payment.getCoin())
+                .businessType(validatedUser.getBusinessType())
+                .totalPayCoin(validatedUser.getTotalCoin())
+                .payCoin(validatedUser.getCoin())
                 .build());
-        return Charge.Response.from(payment);
+        return Charge.Response.from(validatedUser);
     }
 
-    public List<Charge.Response> findByPaymentId(Long userId) {
-        Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("금액이 부족합니다."));
-        List<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(payment.getId());
-        return paymentDetails.stream()
-                .map(paymentDetail -> Charge.Response.builder()
-                        .businessType(paymentDetail.getBusinessType())
-                        .createdAt(LocalDateTime.now())
-                        .coin(paymentDetail.getPayCoin())
-                        .totalCoin(paymentDetail.getTotalPayCoin())
-                        .build())
-                .collect(Collectors.toList());
+    public Page<Charge.Response> findByPaymentId(Long userId, Pageable pageable) {
+        Payment validatedUser = validateUser(userId);
+        Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedUser.getId(), pageable);
+//        return paymentDetails.stream()
+//                .map(paymentDetail -> Charge.Response.builder()
+//                        .businessType(paymentDetail.getBusinessType())
+//                        .createdAt(LocalDateTime.now())
+//                        .coin(paymentDetail.getPayCoin())
+//                        .totalCoin(paymentDetail.getTotalPayCoin())
+//                        .build())
+//                .collect(Collectors.toList());
+//        return paymentDetails.stream().map(Charge.Response::from).collect(Collectors.toList())
+            return paymentDetails.map(Charge.Response::from);
     }
 
 
     public void cancelByBusiness(Long userId, Integer totalAmount) {
-        Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
-        int chargeTotalCoin = payment.getTotalCoin() + totalAmount;
-        payment.setTotalCoin(chargeTotalCoin);
-        paymentRepository.save(payment);
+        Payment validatedUser = validateUser(userId);
+        int chargeTotalCoin = validatedUser.getTotalCoin() + totalAmount;
+        validatedUser.setTotalCoin(chargeTotalCoin);
+        paymentRepository.save(validatedUser);
     }
 
 
     public void orderByBusiness(Long userId, Integer totalAmount) {
-        log.info("userId : " + userId);
-        Payment payment = paymentRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("확인이 필요합니다."));
-        if (payment.getTotalCoin() < totalAmount) {
-            throw new OrderException(OrderErrorCode.LACK_OF_POINT);
+//        log.info("userId : " + userId);
+        Payment validatedUser = validateUser(userId);
+        if (validatedUser.getTotalCoin() < totalAmount) {
+            throw new PaymentException(PaymentErrorCode.LACK_OF_POINT);
         } else {
-            payment.setTotalCoin(payment.getTotalCoin() - totalAmount);
+            validatedUser.setTotalCoin(validatedUser.getTotalCoin() - totalAmount);
         }
-        paymentRepository.save(payment);
+        paymentRepository.save(validatedUser);
+    }
 
+    private Payment validateUser(Long userId){
+        return paymentRepository.findByUserId(userId)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
 
 }
