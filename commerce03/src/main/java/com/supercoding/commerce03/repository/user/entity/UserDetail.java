@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.repository.user.entity;
 
 import com.supercoding.commerce03.web.dto.user.SignUp;
+import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -57,6 +58,11 @@ public class UserDetail {
 			.phoneNumber(signUp.getPhoneNumber())
 			.user(user)
 			.build();
+	}
+	public static void update(UserDetail userDetail,UpdateProfile updateProfile,String passwordEncode) {
+		userDetail.setPassword(passwordEncode);
+		userDetail.setAddress(updateProfile.getAddress());
+		userDetail.setDetailAddress(updateProfile.getDetailAddress());
 	}
 }
 

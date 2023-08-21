@@ -2,6 +2,7 @@ package com.supercoding.commerce03.repository.user.entity;
 
 import com.supercoding.commerce03.repository.order.entity.Order;
 import com.supercoding.commerce03.web.dto.user.SignUp;
+import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -58,5 +59,10 @@ public class User {
 			.createdAt(LocalDateTime.now())
 			.isDeleted(false)
 			.build();
+	}
+	public static void update(User user,UpdateProfile updateProfile){
+		user.setUserName(updateProfile.getUserName());
+		user.setImageUrl(updateProfile.getImageUrl());
+		user.setUpdatedAt(LocalDateTime.now());
 	}
 }
