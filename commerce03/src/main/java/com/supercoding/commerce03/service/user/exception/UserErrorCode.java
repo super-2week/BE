@@ -17,8 +17,12 @@ public enum UserErrorCode {
     INVALID_PASSWORD("올바르지 않은 비밀번호 양식 입니다.",HttpStatus.BAD_REQUEST),
     INVALID_LOGIN_INPUT("해당 회원은 없습니다 다시 한번 입력 해줏세요 ",HttpStatus.BAD_REQUEST),
     //status(HttpStatus.NOT_FOUND) 404
-    USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND);
+    USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND),
 
+    //status(HttpStatus.Accepted) 202
+    IS_NEW_USER("신규 유저 입니다.", HttpStatus.ACCEPTED),
+    //status(HttpStatus.OK) 200
+    IS_EXIST_USER("기존 유저 입니다.", HttpStatus.OK);
     private final String description;
     private final HttpStatus httpStatus;
 }

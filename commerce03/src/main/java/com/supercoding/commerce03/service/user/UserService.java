@@ -34,7 +34,7 @@ public class UserService {
         emailDuplicate(signUp.getEmail());
         validatedPhoneNumber(signUp.getPhoneNumber());
         validatedPassword(signUp.getPassword());
-        checkPassword(signUp.getPassword(), signUp.getCheckPassword());
+
 
         //검증된 정보들
 
@@ -70,11 +70,6 @@ public class UserService {
         }
     }
 
-    public void checkPassword(String password, String checkPassword) {
-        if (!password.equals(checkPassword)) {
-            throw new UserException(UserErrorCode.MISMATCH_PASSWORD);
-        }
-    }
 
     public Login.Response login(Login.Request loginRequest) {
         Optional<UserDetail> optionalUserDetail = userDetailRepository.findByEmail(
@@ -137,7 +132,6 @@ public class UserService {
     public String updateUser(Long userId, UpdateProfile updateProfile) {
 
         validatedPassword(updateProfile.getPassword());//비밀번호 정책
-        checkPassword(updateProfile.getPassword(), updateProfile.getCheckPassword());//입력받은 비밀번호 2중 검증
 
         User user = userRepository.findById(userId).orElseThrow(()-> new UserException(UserErrorCode.USER_NOT_FOUND));
 
