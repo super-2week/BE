@@ -4,7 +4,6 @@ import com.supercoding.commerce03.service.security.Auth;
 import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.service.user.UserService;
 import com.supercoding.commerce03.web.dto.user.Login;
-import com.supercoding.commerce03.web.dto.user.ProfileResponse;
 import com.supercoding.commerce03.web.dto.user.SignUp;
 import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import lombok.RequiredArgsConstructor;
