@@ -4,6 +4,7 @@ package com.supercoding.commerce03.repository.order.entity;
 import com.supercoding.commerce03.repository.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
@@ -15,24 +16,25 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Builder
-@Table(name="Orders")
-@EqualsAndHashCode(of="order_id")
+@Table(name = "Orders")
+@EqualsAndHashCode(of = "order_id")
 @ToString
+@Where(clause = "is_deleted = false")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="order_id", nullable = false)
+    @Column(name = "order_id", nullable = false)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name="status", nullable = false)
+    @Column(name = "status", nullable = false)
     private String status;
 
     @CreatedDate
-    @Column(name="ordered_at", nullable = false)
+    @Column(name = "ordered_at", nullable = false)
     private LocalDateTime orderedAt;
 
     @Column(name = "recipient", nullable = false)
@@ -44,16 +46,16 @@ public class Order {
     @Column(name = "phone_number", nullable = false, length = 11)
     private String phoneNumber;
 
-    @Column(name="post_comment")
+    @Column(name = "post_comment")
     private String postComment;
 
     @ColumnDefault("false")
-    @Column(name="is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
     //orderedAt 이랑 중복되는 느낌 고려해보자.
     @CreatedDate
-    @Column(name="created_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "modified_at")
