@@ -44,9 +44,51 @@ public class ProductService {
         this.searchWishList = searchWishList;
     }
 
+    @Transactional
+    public String getProductList(String searchWord, int pageNumber) {
+        int pageSize;
+        int totalLength = 0;
+        JSONObject resultObject = new JSONObject();
+        JSONArray resultArray = new JSONArray();
+        List resultList = null;
+
+        //첫페이지 32개, 다음 페이지 12개
+        if(pageNumber == 1){
+            pageSize = 32;
+        }else {
+            pageSize = 12;
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
+        List<ProductDto> products = productRepository.getProductList(
+                "%"+searchWord+"%", pageable
+        );
+        List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
+        resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).collect(Collectors.toList());
+//        if ("wishCount".equals(sortBy)) {
+//            //인기순
+//            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getWishCount).reversed()).collect(Collectors.toList());
+//
+//        } else if ("createdAt".equals(sortBy)) {
+//            //최신순
+//            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
+//        } else {
+//            // 기본 정렬 기준 (가격순)
+//            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getPrice)).collect(Collectors.toList());
+//        }
+
+        resultObject.put("products", resultList);
+        if(pageNumber==1) {
+            //첫페이지 에서만 상품의 totalLength(총 개수) 반환
+            totalLength = productRepository.getCount("%"+searchWord+"%");
+            resultObject.put("totalLength", totalLength);
+        }
+        return resultArray.put(resultObject).toString();
+    }
+
 
     @Transactional
-    public String getProductsList(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
+    public String getProductsListWithFilter(GetRequestDto getRequestDto, String searchWord, int pageNumber) {
         int pageSize;
         int totalLength = 0;
         Integer animalCategory = convertCategory.convertAnimalCategory(getRequestDto.getAnimalCategory());
@@ -56,36 +98,6 @@ public class ProductService {
         JSONArray resultArray = new JSONArray();
         List resultList = null;
 
-//        String query =
-//                "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-//                        "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName," +
-//                        "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store) " +
-//                "FROM Product p " +
-//                "WHERE p.animalCategory = :animalCategory " +
-//                "AND p.productCategory = :productCategory ";
-//
-//        if(searchWord != null && !searchWord.isEmpty()){
-//            query += "AND (p.productName LIKE :searchWord OR p.description LIKE :searchWord)";
-//        }
-//
-//        if ("wishCount".equals(sortBy)) {
-//            //인기순
-//            query += "ORDER BY p.wishCount DESC";
-//        } else if ("createdAt".equals(sortBy)) {
-//            //최신순
-//            query += "ORDER BY p.createdAt DESC";
-//        } else {
-//            // 기본 정렬 기준 (가격순)
-//            query += "ORDER BY p.price ASC";
-//        }
-
-//        TypedQuery<ProductDto> jpqlQuery = entityManager.createQuery(query, ProductDto.class);
-//        jpqlQuery.setParameter("animalCategory", animalCategory);
-//        jpqlQuery.setParameter("productCategory", productCategory);
-//        if(searchWord != null && !searchWord.isEmpty()) {
-//            jpqlQuery.setParameter("searchWord", "%" + searchWord + "%");
-//        }
-
         //첫페이지 32개, 다음 페이지 12개
         if(pageNumber == 1){
             pageSize = 32;
@@ -93,25 +105,19 @@ public class ProductService {
             pageSize = 12;
         }
 
-//        jpqlQuery.setFirstResult((pageNumber - 1) * pageSize); // Offset 계산
-//        jpqlQuery.setMaxResults(pageSize); // Limit 설정
-//        List<ProductDto> products = jpqlQuery.getResultList();
-
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
         List<ProductDto> products = productRepository.getProductsWithFilters(
                 animalCategory, productCategory, searchWord, sortBy, pageable
         );
 
-
         List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
 
-
-        if(pageNumber == 1){
-            totalLength = products.size(); //32 혹은 그 미만
-            firstPageSize = products.size();
-        } else {
-            totalLength = firstPageSize + (pageNumber - 2) * 12 + products.size();
-        }
+//        if(pageNumber == 1){
+//            totalLength = products.size(); //32 혹은 그 미만
+//            firstPageSize = products.size();
+//        } else {
+//            totalLength = firstPageSize + (pageNumber - 2) * 12 + products.size();
+//        }
 
         if ("wishCount".equals(sortBy)) {
             //인기순
@@ -125,7 +131,11 @@ public class ProductService {
             resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getPrice)).collect(Collectors.toList());
         }
         resultObject.put("products", resultList);
-        resultObject.put("totalLength", totalLength);
+        if(pageNumber==1) {
+            //첫페이지 에서만 상품의 totalLength(총 개수) 반환
+            totalLength = productRepository.getCount("%"+searchWord+"%");
+            resultObject.put("totalLength", totalLength);
+        }
         return resultArray.put(resultObject).toString();
     }
 
@@ -350,6 +360,7 @@ public class ProductService {
         }
         return "";
     }
+
 
 }
 
