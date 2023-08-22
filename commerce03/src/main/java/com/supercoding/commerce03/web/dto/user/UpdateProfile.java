@@ -16,8 +16,7 @@ public class UpdateProfile {
         private String userName;
         private String password;
         private String address;
-        private String  detailAddress;
-        private String imageUrl;
+        private String detailAddress;
 
 }
 

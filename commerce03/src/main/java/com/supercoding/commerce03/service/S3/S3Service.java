@@ -13,12 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class S3Service {
 
 	private final AmazonS3 amazonS3;
@@ -75,4 +77,24 @@ public class S3Service {
 		}
 	}
 
+	public String uploadFile(MultipartFile multipartFile) {
+		if (multipartFile.isEmpty()) {
+			throw new ImageException(ImageErrorCode.EMPTY_FILE);
+		}
+
+		String fileName = createFileName(multipartFile.getOriginalFilename());
+		ObjectMetadata objectMetadata = new ObjectMetadata();
+		objectMetadata.setContentLength(multipartFile.getSize());
+		objectMetadata.setContentType(multipartFile.getContentType());
+
+		log.info("사진 {}", fileName);
+		try (InputStream inputStream = multipartFile.getInputStream()) {
+			amazonS3.putObject(
+				new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+					.withCannedAcl(CannedAccessControlList.PublicRead));
+		} catch (IOException e) {
+			throw new ImageException(ImageErrorCode.FAILED_UPLOAD);
+    }
+		return baseUrl + fileName;
+	}
 }
