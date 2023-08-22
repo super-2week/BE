@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.config.security;
 
+import com.supercoding.commerce03.common.ExceptionHandlerFilter;
 import com.supercoding.commerce03.service.security.TokenFilter;
 import com.supercoding.commerce03.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class SecurityConfig {
             .and()
             .formLogin().disable()
             .csrf().disable()//세션과 진행 토큰 안정화
+            .addFilterBefore(new ExceptionHandlerFilter(), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(new CorsFilter(), UsernamePasswordAuthenticationFilter.class)
             //.cors()
             .httpBasic().disable()
