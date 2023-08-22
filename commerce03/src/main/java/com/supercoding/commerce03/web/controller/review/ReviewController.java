@@ -5,6 +5,7 @@ import com.supercoding.commerce03.web.dto.review.CreateReview;
 import com.supercoding.commerce03.web.dto.review.DeleteReview;
 import com.supercoding.commerce03.web.dto.review.GetReview;
 import com.supercoding.commerce03.web.dto.review.ModifyReview;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,10 +15,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,24 +31,27 @@ public class ReviewController {
 
 	@PostMapping
 	public ResponseEntity<CreateReview.Response> createReview(
-			@RequestBody CreateReview.Request request
+			@RequestPart CreateReview.Request request,
+			@RequestPart List<MultipartFile> multipartFile
 	){
 			Long userId = 1L;
 			return ResponseEntity.ok(
 					CreateReview.Response.from(
-							reviewService.createReview(request, userId)
+							reviewService.createReview(request, userId, multipartFile)
 					)
 			);
 	}
 
 	@PutMapping
 	public ResponseEntity<ModifyReview.Response> modifyReview(
-			@RequestBody ModifyReview.Request request
+			@RequestPart ModifyReview.Request request,
+			@RequestPart List<MultipartFile> multipartFile
+
 	){
 			Long userId = 1L;
 			return ResponseEntity.ok(
 					ModifyReview.Response.from(
-							reviewService.modifyReview(request, userId)
+							reviewService.modifyReview(request, userId, multipartFile)
 					)
 			);
 	}

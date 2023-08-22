@@ -1,6 +1,9 @@
 package com.supercoding.commerce03.web.dto.review;
 
+import com.supercoding.commerce03.repository.review.entity.ReviewImage;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +24,7 @@ public class GetReview {
 		private String title;
 		private String content;
 		private LocalDateTime createAt;
+		private List<String> imageUrls;
 
 		public static GetReview.Response from(ReviewDto reviewDto){
 			return Response.builder()
@@ -29,6 +33,8 @@ public class GetReview {
 					.title(reviewDto.getTitle())
 					.content(reviewDto.getContent())
 					.createAt(reviewDto.getCreateAt())
+					.imageUrls(reviewDto.getReviewImages().stream()
+							.map(ReviewImage::getReviewImageUrl).collect(Collectors.toList()))
 					.build();
 
 		}

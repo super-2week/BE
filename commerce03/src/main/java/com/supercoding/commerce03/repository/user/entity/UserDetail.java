@@ -1,6 +1,7 @@
 package com.supercoding.commerce03.repository.user.entity;
 
 import com.supercoding.commerce03.web.dto.user.SignUp;
+import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -33,19 +34,19 @@ public class UserDetail {
 	@JoinColumn(name = "user_id")
 	private User user;
 
-	@Column(name = "password", nullable = false)
+	@Column(name = "password")
 	private String password;
 
-	@Column(name = "address", nullable = false)
+	@Column(name = "address")
 	private String address;
 
-	@Column(name = "phone_number", nullable = false)
+	@Column(name = "phone_number")
 	private String phoneNumber;
 
 	@Column(name = "email", nullable = false)
 	private String email;
 
-	@Column(name = "detail_address", nullable = false)
+	@Column(name = "detail_address")
 	private String detailAddress;
 
 	public static UserDetail toEntity(User user, SignUp signUp, String passwordEncode) {
@@ -57,6 +58,11 @@ public class UserDetail {
 			.phoneNumber(signUp.getPhoneNumber())
 			.user(user)
 			.build();
+	}
+	public static void update(UserDetail userDetail,UpdateProfile updateProfile,String passwordEncode) {
+		userDetail.setPassword(passwordEncode);
+		userDetail.setAddress(updateProfile.getAddress());
+		userDetail.setDetailAddress(updateProfile.getDetailAddress());
 	}
 }
 
