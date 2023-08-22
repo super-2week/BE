@@ -45,7 +45,7 @@ public class UserService {
         userDetailRepository.save(
             UserDetail.toEntity(user, signUp, passwordEncoder.encode(signUp.getPassword())));
         log.info("잡았다");
-        paymentService.createPayment(user);
+
 
         return "회원가입이 성공적으로 완료되었습니다";
     }
