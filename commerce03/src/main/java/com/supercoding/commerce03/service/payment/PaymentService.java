@@ -2,6 +2,7 @@ package com.supercoding.commerce03.service.payment;
 
 import com.supercoding.commerce03.repository.payment.PaymentDetailRepository;
 import com.supercoding.commerce03.repository.payment.PaymentRepository;
+import com.supercoding.commerce03.repository.payment.entity.BusinessByType;
 import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
 import com.supercoding.commerce03.repository.user.UserRepository;
@@ -48,7 +49,7 @@ public class PaymentService {
         paymentDetailRepository.save(PaymentDetail.builder()
                 .payment(validatedUser)
                 .createdAt(LocalDateTime.now())
-                .businessType(validatedUser.getBusinessType())
+                .businessType(BusinessByType.valueOf(BusinessByType.CHARGE.getKey()))
                 .totalPayCoin(validatedUser.getTotalCoin())
                 .payCoin(validatedUser.getCoin())
                 .build());
@@ -82,6 +83,17 @@ public class PaymentService {
         int chargeTotalCoin = validatedUser.getTotalCoin() + totalAmount;
         validatedUser.setTotalCoin(chargeTotalCoin);
         paymentRepository.save(validatedUser);
+
+        PaymentDetail paymentDetail = PaymentDetail.builder()
+                .payment(validatedUser)
+                .createdAt(LocalDateTime.now())
+                .businessType(BusinessByType.valueOf(BusinessByType.CANCEL.getKey()))
+                .totalPayCoin(chargeTotalCoin)
+                .payCoin(totalAmount)
+                .build();
+
+        paymentDetailRepository.save(paymentDetail);
+
     }
 
 
@@ -91,9 +103,22 @@ public class PaymentService {
         if (validatedUser.getTotalCoin() < totalAmount) {
             throw new PaymentException(PaymentErrorCode.LACK_OF_POINT);
         } else {
-            validatedUser.setTotalCoin(validatedUser.getTotalCoin() - totalAmount);
+            int orderTotalCoin = validatedUser.getTotalCoin() - totalAmount;
+            validatedUser.setTotalCoin(orderTotalCoin);
+
+            paymentRepository.save(validatedUser);
+
+            PaymentDetail paymentDetail = PaymentDetail.builder()
+                    .payment(validatedUser)
+                    .createdAt(LocalDateTime.now())
+                    .businessType(BusinessByType.valueOf(BusinessByType.USE.getKey()))
+                    .totalPayCoin(orderTotalCoin)
+                    .payCoin(totalAmount)
+                    .build();
+
+            paymentDetailRepository.save(paymentDetail);
         }
-        paymentRepository.save(validatedUser);
+
     }
 
     private Payment validateUser(Long userId){
