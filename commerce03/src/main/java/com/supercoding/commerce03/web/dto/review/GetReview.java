@@ -20,6 +20,7 @@ public class GetReview {
 	public static class Response {
 
 		private Long userId;
+		private String author;
 		private Long reviewId;
 		private String title;
 		private String content;
@@ -29,6 +30,7 @@ public class GetReview {
 		public static GetReview.Response from(ReviewDto reviewDto){
 			return Response.builder()
 					.userId(reviewDto.getUserId())
+					.author(reviewDto.getAuthor())
 					.reviewId(reviewDto.getReviewId())
 					.title(reviewDto.getTitle())
 					.content(reviewDto.getContent())

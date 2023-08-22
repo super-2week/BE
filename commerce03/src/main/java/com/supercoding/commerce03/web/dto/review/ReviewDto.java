@@ -21,6 +21,7 @@ import lombok.Setter;
 public class ReviewDto {
 
 	private Long userId;
+	private String author;
 	private Long productId;
 	private Long reviewId;
 	private String title;
@@ -34,6 +35,7 @@ public class ReviewDto {
 		Product product = review.getProduct();
 		return ReviewDto.builder()
 				.userId(review.getUser().getId())
+				.author(review.getAuthor())
 				.productId(product.getId())
 				.reviewId(review.getId())
 				.title(review.getTitle())
