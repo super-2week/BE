@@ -104,8 +104,25 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    @CrossOrigin(origins = "*")
+    @GetMapping("v1/api/total")
+    public ResponseEntity<String> getProducts(
+            //@PathVariable(required = false) String sortBy,
+            @RequestParam(required = false) String searchWord,
+            @RequestParam(required = false) Integer page
+    ){
+        //GetRequestDto getRequestDto = new GetRequestDto(null, null, sortBy);
+        //log.info("sortBy: " + sortBy + getRequestDto.getSortBy());
+        log.info("searchWord: " + searchWord);
+        log.info("page: " + page);
+        int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
+
+        String resultList = productService.getProductList(searchWord, pageNumber);
+        return ResponseEntity.ok(resultList);
+    }
+
     /**
-     * 상품 리스트 페이지
+     * 상품 리스트 페이지 상세검색
      * @param animalCategory
      * @param productCategory
      * @param sortBy
@@ -118,7 +135,7 @@ public class ProductController {
             "v1/api/product/{animalCategory}" ,
             "v1/api/product/{animalCategory}/{productCategory}",
             "v1/api/product/{animalCategory}/{productCategory}/{sortBy}"})
-    public ResponseEntity<String> getProducts(
+    public ResponseEntity<String> getProductsWithFilter(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -126,15 +143,16 @@ public class ProductController {
             @RequestParam(required = false) Integer page
     ) {
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory, sortBy);
+        int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
         log.info("animalCategory: " + animalCategory + getRequestDto.getAnimalCategory());
         log.info("productCategory: " + productCategory + getRequestDto.getProductCategory());
         log.info("sortBy: " + sortBy + getRequestDto.getSortBy());
         log.info("searchWord: " + searchWord);
-        log.info("page: " + page);
-        int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
+        log.info("page: " + pageNumber);
+
 
         //메인페이지 상품리스트
-        String products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
+        String products = productService.getProductsListWithFilter(getRequestDto, searchWord, pageNumber);
 
         return ResponseEntity.ok(products);
     }
