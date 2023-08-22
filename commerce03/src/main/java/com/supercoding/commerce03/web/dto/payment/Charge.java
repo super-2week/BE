@@ -29,14 +29,14 @@ public class Charge {
     @Builder
     public static class Response {
 
-        private BusinessByType businessType;
+        private String businessType;
         private LocalDateTime createdAt;
         private Integer coin;
         private Integer totalCoin;
 
         public static Charge.Response from(Payment payment) {
             return Response.builder()
-                    .businessType(payment.getBusinessType())
+                    .businessType(payment.getBusinessType().getKey())
                     .createdAt(payment.getCreatedAt())
                     .coin(payment.getCoin())
                     .totalCoin(payment.getTotalCoin())
@@ -49,7 +49,7 @@ public class Charge {
 
         public static Charge.Response from(PaymentDetail paymentDetail) {
             return Response.builder()
-                    .businessType(paymentDetail.getBusinessType())
+                    .businessType(paymentDetail.getBusinessType().getKey())
                     .createdAt(paymentDetail.getCreatedAt())
                     .coin(paymentDetail.getPayCoin())
                     .totalCoin(paymentDetail.getTotalPayCoin())

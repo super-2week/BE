@@ -4,6 +4,7 @@ import com.supercoding.commerce03.repository.user.UserDetailRepository;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.repository.user.entity.UserDetail;
+import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.service.security.JwtTokenProvider;
 import com.supercoding.commerce03.service.user.exception.UserErrorCode;
 import com.supercoding.commerce03.service.user.exception.UserException;
@@ -27,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserDetailRepository userDetailRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final PaymentService paymentService;
 
 
     public String signUp(SignUp signUp) {
@@ -43,6 +45,7 @@ public class UserService {
         userDetailRepository.save(
             UserDetail.toEntity(user, signUp, passwordEncoder.encode(signUp.getPassword())));
         log.info("잡았다");
+        paymentService.createPayment(user);
 
         return "회원가입이 성공적으로 완료되었습니다";
     }

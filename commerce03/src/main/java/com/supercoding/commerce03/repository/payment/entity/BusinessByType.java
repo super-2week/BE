@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 public enum BusinessByType {
 
     CHARGE("충전"),
-    USE("사용");
+    USE("사용"),
+    CREATE("생성"),
+    CANCEL("취소");
 
     private final String key;
 }
