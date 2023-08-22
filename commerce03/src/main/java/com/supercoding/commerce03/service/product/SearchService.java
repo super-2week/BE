@@ -19,10 +19,9 @@ public class SearchService {
     @Transactional(readOnly = true)
     public List<Object[]> searchFullText(GetRequestDto getRequestDto, String searchWord){
 
-//        String keyWord = "%" + searchWord + "%";
-//        System.out.println(keyWord);
+        String keyWord = searchWord + "*";
 
-        List<Object[]> wordList = productRepository.fullTextSearch(searchWord);
+        List<Object[]> wordList = productRepository.fullTextSearch(keyWord);
         return wordList;//.stream().map(SearchWordListDto::fromSearch).collect(Collectors.toList());
 
     }

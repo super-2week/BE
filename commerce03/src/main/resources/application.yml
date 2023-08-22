@@ -1,9 +1,31 @@
 spring:
-  mvc:
-    path match:
-      matching-strategy: ant_path_matcher
+  datasource:
+    master:
+      hikari:
+        username: ${DB_USER}
+        password: ${DB_PASSWORD}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST_MASTER}:3306/${DB_NAME}
+    slave:
+      hikari:
+        username: ${DB_USER}
+        password: ${DB_PASSWORD}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST_SLAVE}:3306/${DB_NAME}
 
-  config:
-    import:
-      - classpath:mysql.yml
-      - classpath:s3.yml
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+cloud:
+  aws:
+    baseUrl : ${AWS_URL}
+    s3:
+      bucket: ${AWS_BUCKET}
+    stack.auto: false
+    region.static: ap-northeast-2
+    credentials:
+      accessKey: ${AWS_ACCESS_KEY}
+      secretKey: ${AWS_SECRET_KEY}
