@@ -50,7 +50,7 @@ public class PaymentService {
                 .payment(validatedUser)
                 .createdAt(LocalDateTime.now())
                 .businessType(BusinessByType.valueOf(BusinessByType.CHARGE.getKey()))
-                .totalPayCoin(validatedUser.getTotalCoin())
+                .totalPayCoin(chargeTotalCoin)
                 .payCoin(validatedUser.getCoin())
                 .build());
         return Charge.Response.from(validatedUser);
@@ -80,15 +80,15 @@ public class PaymentService {
 
     public void cancelByBusiness(Long userId, Integer totalAmount) {
         Payment validatedUser = validateUser(userId);
-        int chargeTotalCoin = validatedUser.getTotalCoin() + totalAmount;
-        validatedUser.setTotalCoin(chargeTotalCoin);
+        int cancelTotalCoin = validatedUser.getTotalCoin() + totalAmount;
+        validatedUser.setTotalCoin(cancelTotalCoin);
         paymentRepository.save(validatedUser);
 
         PaymentDetail paymentDetail = PaymentDetail.builder()
                 .payment(validatedUser)
                 .createdAt(LocalDateTime.now())
                 .businessType(BusinessByType.valueOf(BusinessByType.CANCEL.getKey()))
-                .totalPayCoin(chargeTotalCoin)
+                .totalPayCoin(cancelTotalCoin)
                 .payCoin(totalAmount)
                 .build();
 
