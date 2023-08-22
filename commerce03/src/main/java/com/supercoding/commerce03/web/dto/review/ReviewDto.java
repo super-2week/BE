@@ -3,6 +3,7 @@ package com.supercoding.commerce03.web.dto.review;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.review.entity.Review;
 import com.supercoding.commerce03.repository.review.entity.ReviewImage;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class ReviewDto {
 	private String content;
 	private LocalDateTime createAt;
 	private List<ReviewImage> reviewImages = new ArrayList<>();
+	private String userEmail;
 
 
 	public static ReviewDto fromEntity(Review review){

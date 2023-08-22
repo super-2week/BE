@@ -30,12 +30,14 @@ public class ModifyReview {
 	public static class Response {
 
 		private Long userId;
+		private String userEmail;
 		private Long reviewId;
 		private Long productId;
 
 		public static Response from(ReviewDto reviewDto){
 			return Response.builder()
 					.userId(reviewDto.getUserId())
+					.userEmail(reviewDto.getUserEmail())
 					.reviewId(reviewDto.getReviewId())
 					.productId(reviewDto.getProductId())
 					.build();
