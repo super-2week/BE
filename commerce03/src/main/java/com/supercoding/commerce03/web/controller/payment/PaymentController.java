@@ -3,6 +3,8 @@ package com.supercoding.commerce03.web.controller.payment;
 import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
 import com.supercoding.commerce03.service.payment.PaymentService;
+import com.supercoding.commerce03.service.security.Auth;
+import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.web.dto.payment.Charge;
 import lombok.Data;
 import lombok.Getter;
@@ -28,15 +30,17 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+    @Auth
     @PatchMapping("/charge")
     public ResponseEntity<Charge.Response> charge(@RequestBody Charge.Request request){
-        Long userId = 1L;
+        Long userId = AuthHolder.getUserId();
         return ResponseEntity.ok(paymentService.chargeByCoin(userId,request));
     }
 
+    @Auth
     @GetMapping
     public ResponseEntity<Page<Charge.Response>> findByPaymentId(Pageable pageable) {
-        Long userId = 1L;
+        Long userId = AuthHolder.getUserId();
 
         return ResponseEntity.ok(paymentService.findByPaymentId(userId, pageable));
     }
