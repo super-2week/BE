@@ -17,14 +17,14 @@ public class DeleteReview {
 	public static class Response {
 
 		private Long userId;
-		private String userEmail;
+		private String author;
 		private Long reviewId;
 		private Long productId;
 
 		public static Response from(ReviewDto reviewDto){
 			return Response.builder()
 					.userId(reviewDto.getUserId())
-					.userEmail(reviewDto.getUserEmail())
+					.author(reviewDto.getAuthor())
 					.reviewId(reviewDto.getReviewId())
 					.productId(reviewDto.getProductId())
 					.build();

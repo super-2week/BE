@@ -2,6 +2,7 @@ package com.supercoding.commerce03.repository.review.entity;
 
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import com.supercoding.commerce03.web.dto.review.CreateReview;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +45,9 @@ public class Review {
 	@JoinColumn(name = "product_id")
 	private Product product;
 
+	@Column(name = "author")
+	private String author;
+
 	@Column(name = "title")
 	private String title;
 
@@ -68,9 +72,10 @@ public class Review {
 	@OneToMany(mappedBy = "review")
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
-	public static Review toEntity(User user, Product product, CreateReview.Request request) {
+	public static Review toEntity(User user, UserDetail userDetail, Product product, CreateReview.Request request) {
 		return Review.builder()
 				.user(user)
+				.author(userDetail.getEmail())
 				.product(product)
 				.title(request.getTitle())
 				.content(request.getContent())
