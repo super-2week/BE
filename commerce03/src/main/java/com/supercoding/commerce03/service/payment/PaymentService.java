@@ -75,10 +75,12 @@ public class PaymentService {
 
 
     public void cancelByBusiness(Long userId, Integer totalAmount) {
+
         Payment validatedPayment = validatePayment(userId);
         int cancelTotalCoin = validatedPayment.getTotalCoin() + totalAmount;
         validatedPayment.setTotalCoin(cancelTotalCoin);
         paymentRepository.save(validatedPayment);
+
 
         PaymentDetail paymentDetail = PaymentDetail.builder()
                 .payment(validatedPayment)

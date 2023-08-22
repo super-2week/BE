@@ -62,7 +62,6 @@ public class User {
 	}
 	public static void update(User user,UpdateProfile updateProfile){
 		user.setUserName(updateProfile.getUserName());
-		user.setImageUrl(updateProfile.getImageUrl());
 		user.setUpdatedAt(LocalDateTime.now());
 	}
 }

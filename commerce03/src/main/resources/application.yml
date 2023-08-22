@@ -12,6 +12,12 @@ spring:
         password: ${DB_PASSWORD}
         driver-class-name: com.mysql.cj.jdbc.Driver
         jdbc-url: jdbc:mysql://${DB_HOST_SLAVE}:3306/${DB_NAME}
+    slave2:
+      hikari:
+        username: ${DB_USER}
+        password: ${DB_PASSWORD}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST_SLAVE2}:3306/${DB_NAME}
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect

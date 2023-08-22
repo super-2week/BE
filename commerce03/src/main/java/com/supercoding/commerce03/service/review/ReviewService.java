@@ -9,14 +9,17 @@ import com.supercoding.commerce03.repository.review.ReviewImageRepository;
 import com.supercoding.commerce03.repository.review.ReviewRepository;
 import com.supercoding.commerce03.repository.review.entity.Review;
 import com.supercoding.commerce03.repository.review.entity.ReviewImage;
+import com.supercoding.commerce03.repository.user.UserDetailRepository;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import com.supercoding.commerce03.service.S3.S3Service;
 import com.supercoding.commerce03.service.review.exception.ReviewErrorCode;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
 import com.supercoding.commerce03.web.dto.review.CreateReview;
 import com.supercoding.commerce03.web.dto.review.ModifyReview.Request;
 import com.supercoding.commerce03.web.dto.review.ReviewDto;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReviewService {
 
 	private final UserRepository userRepository;
+	private final UserDetailRepository userDetailRepository;
 	private final ProductRepository productRepository;
 	private final ReviewRepository reviewRepository;
 	private final ReviewImageRepository reviewImageRepository;
@@ -46,6 +50,7 @@ public class ReviewService {
 		Long inputProductId = request.getProductId();
 
 		User validatedUser = validateUser(userId);
+		UserDetail validateUserDetail = validateUserDetail(userId);
 		Product validatedProduct = validateProduct(inputProductId);
 		validateReviewAuthorization(userId, inputProductId);
 
@@ -53,7 +58,7 @@ public class ReviewService {
 			throw new ReviewException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
 		}
 
-		Review review = toEntity(validatedUser, validatedProduct, request);
+		Review review = toEntity(validatedUser, validateUserDetail, validatedProduct, request);
 		reviewRepository.save(review);
 
 		List<String> imageUrls = s3Service.uploadFiles(multipartFile);
@@ -88,6 +93,7 @@ public class ReviewService {
 	public ReviewDto deleteReview(Long reviewId, Long userId){
 
 		User validatedUser = validateUser(userId);
+		UserDetail validateUserDetail = validateUserDetail(userId);
 		Review validateReview = validateReview(reviewId);
 
 		if (isNotReviewer(validatedUser.getId(), validateReview)) {
@@ -96,6 +102,7 @@ public class ReviewService {
 
 		deleteReviewImage(validateReview);
 		validateReview.setIsDeleted(true);
+		validateReview.setDeleteAt(LocalDateTime.now());
 
 		return ReviewDto.fromEntity(validateReview);
 	}
@@ -112,6 +119,10 @@ public class ReviewService {
 	private User validateUser(Long userId){
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new ReviewException(ReviewErrorCode.USER_NOT_FOUND));
+	}
+
+	private UserDetail validateUserDetail(Long userId){
+		return userDetailRepository.findByUserId(userId);
 	}
 
 	private Product validateProduct(Long productId){
