@@ -10,7 +10,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,7 +23,7 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
         }catch (ExpiredJwtException e){
             setErrorResponse(response, UserErrorCode.EXPIRED_TOKEN);
         }catch (JwtException e){
-            filterChain.doFilter(request,response);
+            filterChain.doFilter(request,response);//요청을 계속 진행시키겠다
         }
     }
     private <T> void setErrorResponse(HttpServletResponse response, UserErrorCode userErrorCode) {

@@ -37,10 +37,8 @@ public class UserService {
 
     public String signUp(SignUp signUp) {
         //비지니스 로직(들어오는것들을 검증하는 부분)
-        emailDuplicate(signUp.getEmail());
         validatedPhoneNumber(signUp.getPhoneNumber());
         validatedPassword(signUp.getPassword());
-
 
         //검증된 정보들
 
@@ -50,15 +48,16 @@ public class UserService {
             UserDetail.toEntity(user, signUp, passwordEncoder.encode(signUp.getPassword())));
         log.info("잡았다");
 
-
         return "회원가입이 성공적으로 완료되었습니다";
     }
 
-    public void emailDuplicate(String email) {
-        boolean checkEmail = userDetailRepository.existsByEmail(email);
+    public String emailDuplicate(String email) {
+       boolean checkEmail = userDetailRepository.existsByEmail(email);
+       log.info("너 중복이니? {}",checkEmail);
         if (checkEmail) {
             throw new UserException(UserErrorCode.EMAIL_DUPLICATION);
         }
+            return "사용가능한 이메일입니다";
     }
 
     public void validatedPhoneNumber(String phoneNumber) {
