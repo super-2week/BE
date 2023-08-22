@@ -4,6 +4,7 @@ import com.supercoding.commerce03.repository.user.UserDetailRepository;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.repository.user.entity.UserDetail;
+import com.supercoding.commerce03.service.S3.S3Service;
 import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.service.security.JwtTokenProvider;
 import com.supercoding.commerce03.service.user.exception.UserErrorCode;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -29,6 +31,8 @@ public class UserService {
     private final UserDetailRepository userDetailRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final PaymentService paymentService;
+
+    private final S3Service s3Service;
 
 
     public String signUp(SignUp signUp) {
@@ -132,11 +136,21 @@ public class UserService {
     }
 
     @Transactional
-    public String updateUser(Long userId, UpdateProfile updateProfile) {
+    public String updateUser(Long userId, UpdateProfile updateProfile, MultipartFile multipartFile) {
 
         validatedPassword(updateProfile.getPassword());//비밀번호 정책
 
-        User user = userRepository.findById(userId).orElseThrow(()-> new UserException(UserErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId)
+            .orElseThrow(()-> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        //기존에 있던 파일 삭제
+        if(user.getImageUrl() != null) {
+            s3Service.deleteFile(user.getImageUrl());
+        }
+        //사진 업로드
+        String image = s3Service.uploadFile(multipartFile);
+
+        user.setImageUrl(image);
 
         UserDetail userDetail = userDetailRepository.findByUserId(userId);//회원의 ID로 접근 권한 처리
 

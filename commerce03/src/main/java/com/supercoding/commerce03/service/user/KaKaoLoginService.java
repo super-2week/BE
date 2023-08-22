@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,10 +27,11 @@ public class KaKaoLoginService {
 
     private final UserDetailRepository userDetailRepository;
 
+    @Transactional
     public ResponseEntity<String> emailExists(KakaoLogin kakaoLogin) {
         //이메일과 회원 이름 이 들어온다 (이메일을 갖고올 때 isDelete t인지 f인지)
         Optional<UserDetail> optionalUserDetail = userDetailRepository.findByEmail(kakaoLogin.getEmail());
-
+        log.info("비어있냐 {}",optionalUserDetail.isEmpty());
         //만약 이메일이 현재 존재하지 않는 경우에는
         if (optionalUserDetail.isEmpty()){
             User user = userRepository.save(User.builder()
@@ -39,6 +41,7 @@ public class KaKaoLoginService {
                 .build());
 
             UserDetail userDetail = userDetailRepository.save(UserDetail.builder()
+                .user(user)
                 .email(kakaoLogin.getEmail())
                 .build());
             //토큰 생성
@@ -52,16 +55,14 @@ public class KaKaoLoginService {
         else {
             //토큰을 생성한다
             String token = makeLoginResponse(optionalUserDetail.get().getUser(), optionalUserDetail.get());
-
+            log.info("토큰 보내주냐? {}", token);
             //해당 메세지를 보낸다
             HttpHeaders header = new HttpHeaders();
             header.set("Authorization", "Bearer " + token);
 
             return new ResponseEntity<>("기존 회원입니다 로그인 완료!",header,HttpStatus.OK);
-
         }
     }
-
 
     public String makeLoginResponse(User user, UserDetail userDetail) {
         return JwtTokenProvider.createToken(user, userDetail);

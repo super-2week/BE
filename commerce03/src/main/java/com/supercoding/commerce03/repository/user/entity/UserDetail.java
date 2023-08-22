@@ -31,7 +31,7 @@ public class UserDetail {
 	private Long id;
 
 	@OneToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id",nullable = false)
 	private User user;
 
 	@Column(name = "password")
