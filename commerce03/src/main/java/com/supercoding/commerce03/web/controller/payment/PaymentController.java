@@ -1,27 +1,16 @@
 package com.supercoding.commerce03.web.controller.payment;
 
-import com.supercoding.commerce03.repository.payment.entity.Payment;
-import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
 import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.service.security.Auth;
 import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.web.dto.payment.Charge;
-import lombok.Data;
-import lombok.Getter;
+
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.NumberFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -36,6 +25,16 @@ public class PaymentController {
         Long userId = AuthHolder.getUserId();
         return ResponseEntity.ok(paymentService.chargeByCoin(userId,request));
     }
+
+//    @Auth
+//    @GetMapping
+//    public ResponseEntity<?> totalCoinList(Pageable pageable) {
+//        Long userId = AuthHolder.getUserId();
+//
+//        Page<TotalCoin.Response> totalPayCoinList = paymentService.totalCoinList(userId, pageable)
+//
+//        return ResponseEntity.ok(totalPayCoinList);
+//    }
 
     @Auth
     @GetMapping

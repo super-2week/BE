@@ -5,15 +5,10 @@ import com.supercoding.commerce03.repository.payment.PaymentRepository;
 import com.supercoding.commerce03.repository.payment.entity.BusinessByType;
 import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
-import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
-import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
-import com.supercoding.commerce03.service.cart.exception.CartException;
-import com.supercoding.commerce03.service.order.exception.OrderErrorCode;
-import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.service.payment.exception.PaymentErrorCode;
 import com.supercoding.commerce03.service.payment.exception.PaymentException;
-import com.supercoding.commerce03.web.dto.payment.Cancel;
+
 import com.supercoding.commerce03.web.dto.payment.Charge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +25,6 @@ import java.util.stream.Collectors;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final UserRepository userRepository;
     private final PaymentDetailRepository paymentDetailRepository;
 
     public void createPayment(User user){
@@ -43,87 +34,90 @@ public class PaymentService {
 
     @Transactional
     public Charge.Response chargeByCoin(Long userId, Charge.Request request) {
-        Payment validatedUser = validateUser(userId);
-        int chargeTotalCoin = validatedUser.getTotalCoin() + request.getCoin();
-        validatedUser.setTotalCoin(chargeTotalCoin);
+        Payment validatedPayment = validatePayment(userId);
+        int chargeTotalCoin = validatedPayment.getTotalCoin() + request.getCoin();
+        validatedPayment.setTotalCoin(chargeTotalCoin);
+        validatedPayment.setCoin(request.getCoin());
+        validatedPayment.setCreatedAt(LocalDateTime.now());
+        validatedPayment.setBusinessType(BusinessByType.CHARGE);
+
         paymentDetailRepository.save(PaymentDetail.builder()
-                .payment(validatedUser)
+                .payment(validatedPayment)
                 .createdAt(LocalDateTime.now())
-                .businessType(BusinessByType.valueOf(BusinessByType.CHARGE.getKey()))
+                .businessType(BusinessByType.CHARGE)
                 .totalPayCoin(chargeTotalCoin)
-                .payCoin(validatedUser.getCoin())
+                .payCoin(validatedPayment.getCoin())
                 .build());
-        return Charge.Response.from(validatedUser);
+        return Charge.Response.from(validatedPayment);
     }
 
-//    public void chargePoint(Long userId,int amount){
-//        Payment payment = paymentRepository.findByUserId(userId);
-//        payment.setCoin(payment.getTotalCoin() + amount);
-//        userRepository.save(payment);
+//    public TotalCoin.Response totalCoinList(Long userId, Pageable pageable) {
+//        Payment validatedPayment = validatePayment(userId);
+//
+//        Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedPayment.getId(), pageable);
+//
+//        List<TotalCoin.Response.paymentDetail> responsePaymentDetails = paymentDetails.stream().map(paymentDetail ->
+//                TotalCoin.Response.paymentDetail.builder()
+//                        .totalCoin(paymentDetail.getTotalPayCoin())
+//                        .createdAt(paymentDetail.getCreatedAt())
+//                        .coin(paymentDetail.getPayCoin())
+//                        .businessType(paymentDetail.getBusinessType().getKey())
+//                        .build()
+//        ).collect(Collectors.toList());
+//            return TotalCoin.Response.from(validatedPayment, responsePaymentDetails);
 //    }
 
     public Page<Charge.Response> findByPaymentId(Long userId, Pageable pageable) {
-        Payment validatedUser = validateUser(userId);
-        Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedUser.getId(), pageable);
-//        return paymentDetails.stream()
-//                .map(paymentDetail -> Charge.Response.builder()
-//                        .businessType(paymentDetail.getBusinessType())
-//                        .createdAt(LocalDateTime.now())
-//                        .coin(paymentDetail.getPayCoin())
-//                        .totalCoin(paymentDetail.getTotalPayCoin())
-//                        .build())
-//                .collect(Collectors.toList());
-//        return paymentDetails.stream().map(Charge.Response::from).collect(Collectors.toList())
-            return paymentDetails.map(Charge.Response::from);
+        Payment validatedPayment = validatePayment(userId);
+        Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedPayment.getId(), pageable);
+        return paymentDetails.map(Charge.Response::from);
     }
 
 
     public void cancelByBusiness(Long userId, Integer totalAmount) {
-        Payment validatedUser = validateUser(userId);
-        int cancelTotalCoin = validatedUser.getTotalCoin() + totalAmount;
-        validatedUser.setTotalCoin(cancelTotalCoin);
-        paymentRepository.save(validatedUser);
+
+        Payment validatedPayment = validatePayment(userId);
+        int cancelTotalCoin = validatedPayment.getTotalCoin() + totalAmount;
+        validatedPayment.setTotalCoin(cancelTotalCoin);
+        paymentRepository.save(validatedPayment);
+
 
         PaymentDetail paymentDetail = PaymentDetail.builder()
-                .payment(validatedUser)
+                .payment(validatedPayment)
                 .createdAt(LocalDateTime.now())
-                .businessType(BusinessByType.valueOf(BusinessByType.CANCEL.getKey()))
+                .businessType(BusinessByType.CANCEL)
                 .totalPayCoin(cancelTotalCoin)
                 .payCoin(totalAmount)
                 .build();
 
         paymentDetailRepository.save(paymentDetail);
-
     }
 
 
     public void orderByBusiness(Long userId, Integer totalAmount) {
-//        log.info("userId : " + userId);
-        Payment validatedUser = validateUser(userId);
-        if (validatedUser.getTotalCoin() < totalAmount) {
+        Payment validatedPayment = validatePayment(userId);
+        if (validatedPayment.getTotalCoin() < totalAmount) {
             throw new PaymentException(PaymentErrorCode.LACK_OF_POINT);
         } else {
-            int orderTotalCoin = validatedUser.getTotalCoin() - totalAmount;
-            validatedUser.setTotalCoin(orderTotalCoin);
+            int orderTotalCoin = validatedPayment.getTotalCoin() - totalAmount;
+            validatedPayment.setTotalCoin(orderTotalCoin);
 
-            paymentRepository.save(validatedUser);
+            paymentRepository.save(validatedPayment);
 
             PaymentDetail paymentDetail = PaymentDetail.builder()
-                    .payment(validatedUser)
+                    .payment(validatedPayment)
                     .createdAt(LocalDateTime.now())
-                    .businessType(BusinessByType.valueOf(BusinessByType.USE.getKey()))
+                    .businessType(BusinessByType.USE)
                     .totalPayCoin(orderTotalCoin)
                     .payCoin(totalAmount)
                     .build();
 
             paymentDetailRepository.save(paymentDetail);
         }
-
     }
 
-    private Payment validateUser(Long userId){
+    private Payment validatePayment(Long userId){
         return paymentRepository.findByUserId(userId)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
-
 }
