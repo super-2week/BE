@@ -20,8 +20,8 @@ public class ConvertCategory {
                     return 2;
                 case "house":
                     return 3;
-                case "etc":
-                    return 4;
+//                case "etc":
+//                    return 4;
                 default:
                     return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
             }
@@ -39,8 +39,8 @@ public class ConvertCategory {
                     return 5;
                 case "cloth":
                     return 6;
-                case "etc":
-                    return 7;
+//                case "etc":
+//                    return 7;
                 default:
                     return 1; // 또는 다른 기본값 또는 에러 처리 로직 추가
             }

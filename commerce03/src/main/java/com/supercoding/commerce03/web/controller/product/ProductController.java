@@ -45,7 +45,6 @@ public class ProductController {
             @PathVariable(required = false) String animalCategory
     ){
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
-        log.info("배너상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
 
         String purchasedList = productService.getMostPurchased(getRequestDto);
         return ResponseEntity.ok(purchasedList);
@@ -64,9 +63,6 @@ public class ProductController {
             @PathVariable(required = false) String productCategory
     ){
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory);
-        log.info("인기상품 동물분류: " + getRequestDto.getAnimalCategory());
-        log.info("인기상품 용품분류: " + getRequestDto.getProductCategory());
-
         //해당 카테고리 인기 Top10
         List<ProductResponseDto> popularList = productService.getPopularTen(getRequestDto);
         return ResponseEntity.ok(popularList);
@@ -83,7 +79,6 @@ public class ProductController {
             @PathVariable(required = false) String animalCategory
     ){
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
-        log.info("추천상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
         //해당 카테고리 추천 상품 3종
         String recommendList = productService.getRecommendThree(getRequestDto);
         return ResponseEntity.ok(recommendList);
@@ -107,12 +102,10 @@ public class ProductController {
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/total")
     public ResponseEntity<String> getProducts(
-            //@PathVariable(required = false) String sortBy,
             @RequestParam(required = false) String searchWord,
             @RequestParam(required = false) Integer page
     ){
-        //GetRequestDto getRequestDto = new GetRequestDto(null, null, sortBy);
-        //log.info("sortBy: " + sortBy + getRequestDto.getSortBy());
+
         log.info("searchWord: " + searchWord);
         log.info("page: " + page);
         int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
@@ -144,12 +137,6 @@ public class ProductController {
     ) {
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory, sortBy);
         int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
-        log.info("animalCategory: " + animalCategory + getRequestDto.getAnimalCategory());
-        log.info("productCategory: " + productCategory + getRequestDto.getProductCategory());
-        log.info("sortBy: " + sortBy + getRequestDto.getSortBy());
-        log.info("searchWord: " + searchWord);
-        log.info("page: " + pageNumber);
-
 
         //메인페이지 상품리스트
         String products = productService.getProductsListWithFilter(getRequestDto, searchWord, pageNumber);
@@ -173,7 +160,6 @@ public class ProductController {
             throw new ProductException(ProductErrorCode.INVALID_USER);
 
         long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
-//        long userId = 1L;
         List<GetWishListDto> wishList = productService.getWishList(userId);
         return ResponseEntity.ok(wishList);
     }
