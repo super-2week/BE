@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,10 +36,12 @@ public class OrderService {
 
     private final PaymentService paymentService;
 
+    private DecimalFormat df = new DecimalFormat("###,###");
+
     @Transactional
-    public OrderDto.OrderResponse orderRegister(String userId, OrderDto.OrderRegisterRequest orderRegisterRequest) {
+    public OrderDto.OrderResponse orderRegister(Long userId, OrderDto.OrderRegisterRequest orderRegisterRequest) {
         //user userId로 객체 가져오기
-        User user = validUser(Long.valueOf(userId));
+        User user = validUser(userId);
 
         // 주문 상품 총액 계산
         Integer totalAmount = orderRegisterRequest.getProducts().stream()
@@ -115,7 +118,7 @@ public class OrderService {
                         .id(orderDetail.getProduct().getId())
                         .productName(orderDetail.getProduct().getProductName())
                         .amount(orderDetail.getAmount())
-                        .price(orderDetail.getProduct().getPrice())
+                        .price(df.format(orderDetail.getProduct().getPrice()))
                         .imgUrl(orderDetail.getProduct().getImageUrl())
                         .build()
                 ).collect(Collectors.toList());
@@ -125,7 +128,7 @@ public class OrderService {
                 .orderedProducts(orderedProducts)
                 .orderId(order.getId())
                 .status(order.getStatus())
-                .totalAmount(totalAmount)
+                .totalAmount(df.format(totalAmount))
                 .recipient(order.getRecipient())
                 .address(order.getAddress())
                 .address(order.getAddress())
@@ -139,9 +142,9 @@ public class OrderService {
 
 
     @Transactional
-    public OrderDto.OrderCancelResponse orderCancel(String userId, String orderId) {
+    public OrderDto.OrderCancelResponse orderCancel(Long userId, String orderId) {
         //user userId로 객체 가져오기
-        User user = validUser(Long.valueOf(userId));
+        User user = validUser(userId);
         //Order 가져오기
         Order order = validOrder(Long.valueOf(orderId));
 
@@ -179,22 +182,23 @@ public class OrderService {
 
     }
 
-    public Page<OrderDto.OrderListResponse> orderList(String userId, Pageable pageable) {
+    public Page<OrderDto.OrderListResponse> orderList(Long userId, Pageable pageable) {
 
-        User user = validUser(Long.valueOf(userId));
+        User user = validUser(userId);
 
         Page<Order> orders = orderRepository.findAllByUser(user, pageable);
 
         Page<OrderDto.OrderListResponse> orderListResponsePage
                 = orders.map(order -> OrderDto.OrderListResponse
                 .builder()
+                .orderId(order.getId())
                 .status(order.getStatus())
                 .orderedProducts(orderDetailRepository.findOrderDetailsByOrder(order).stream()
                         .map(orderDetail -> OrderDto.ResponseOrderProduct.builder()
                                 .id(orderDetail.getProduct().getId())
                                 .productName(orderDetail.getProduct().getProductName())
                                 .amount(orderDetail.getAmount())
-                                .price(orderDetail.getProduct().getPrice())
+                                .price(df.format(orderDetail.getProduct().getPrice()))
                                 .imgUrl(orderDetail.getProduct().getImageUrl())
                                 .build()
                         ).collect(Collectors.toList()))
@@ -205,10 +209,14 @@ public class OrderService {
     }
 
     @Transactional
-    public String deleteOneInOrderList(String orderId) {
+    public String deleteOneInOrderList(Long userId, String orderId) {
+        User user = validUser(userId);
         Order orderToDeleted = validOrder(Long.valueOf(orderId));
 
         if (orderToDeleted.getIsDeleted() == true) throw new OrderException(OrderErrorCode.ORDER_ALREADY_DELELED);
+        if (!user.equals(orderToDeleted.getUser())) {
+            throw new OrderException(OrderErrorCode.NO_PERMISSION_TO_DELETE);
+        }
 
         orderToDeleted.setIsDeleted(true);
         orderToDeleted.setModifiedAt(LocalDateTime.now());
@@ -218,14 +226,18 @@ public class OrderService {
         return "요청하신 orderId " + orderId + "의 주문 내역이 삭제되었습니다.";
     }
 
-    public OrderDto.OrderResponse orderViewDetail(String orderId) {
+    public OrderDto.OrderResponse orderViewDetail(Long userId, String orderId) {
         Order order = validOrder(Long.valueOf(orderId));
+        User user = validUser(userId);
+        if(!user.equals(order.getUser())){
+            throw new OrderException(OrderErrorCode.NO_PERMISSION_TO_VIEW);
+        }
 
         OrderDto.OrderResponse orderRegisterResponse
                 = OrderDto.OrderResponse.builder()
                 .orderId(Long.valueOf(orderId))
                 .status(order.getStatus())
-                .totalAmount(order.getTotalAmount())
+                .totalAmount(order.getTotalAmount().toString())
                 .recipient(order.getRecipient())
                 .address(order.getAddress())
                 .phoneNumber(order.getPhoneNumber())
@@ -236,7 +248,7 @@ public class OrderService {
                                 .builder()
                                 .id(orderDetail.getId())
                                 .productName(orderDetail.getProduct().getProductName())
-                                .price(orderDetail.getPrice())
+                                .price(df.format(orderDetail.getPrice()))
                                 .amount(orderDetail.getAmount())
                                 .imgUrl(orderDetail.getProduct().getImageUrl())
                                 .build()
