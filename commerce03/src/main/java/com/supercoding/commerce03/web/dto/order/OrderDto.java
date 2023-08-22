@@ -45,8 +45,7 @@ public class OrderDto {
     public static class ResponseOrderProduct{
         private Long id;
         private String productName;
-        @JsonFormat(pattern = "#,###")
-        private Integer price;
+        private String price;
         private Integer amount;
         private String imgUrl;
     }
@@ -59,8 +58,7 @@ public class OrderDto {
     public static class OrderResponse{
         private Long orderId;
         private String status;
-        @JsonFormat(pattern = "#,###")
-        private Integer totalAmount;
+        private String totalAmount;
         //받을 사람
         private String recipient;
         //받는 사람 주소
@@ -88,6 +86,7 @@ public class OrderDto {
     @AllArgsConstructor
     @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class OrderListResponse{
+        private Long orderId;
         private String status;
         private LocalDateTime orderedDate;
         private List<ResponseOrderProduct> orderedProducts;

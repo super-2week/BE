@@ -55,5 +55,4 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             docker stop commerce && docker rm commerce && docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/commerce:latest
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/commerce:latest
-            docker run -d -p 8080:8080 -e DB_HOST=${{ secrets.DB_HOST }} -e DB_NAME=${{ secrets.DB_NAME }} -e DB_USER=${{ secrets.DB_USER }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} --name commerce ${{ secrets.DOCKERHUB_USERNAME }}/commerce:latest
+            docker-compose up -d

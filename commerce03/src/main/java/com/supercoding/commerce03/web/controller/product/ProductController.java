@@ -1,21 +1,21 @@
 package com.supercoding.commerce03.web.controller.product;
 
-import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.wish.entity.Wish;
 import com.supercoding.commerce03.service.product.ProductService;
-import com.supercoding.commerce03.service.security.Auth;
-import com.supercoding.commerce03.service.security.AuthHolder;
+import com.supercoding.commerce03.service.product.exception.ProductErrorCode;
+import com.supercoding.commerce03.service.product.exception.ProductException;
 import com.supercoding.commerce03.web.dto.product.*;
 import com.supercoding.commerce03.web.dto.product.util.WishListSearch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,13 +44,10 @@ public class ProductController {
     public ResponseEntity<String> getBanner(
             @PathVariable(required = false) String animalCategory
     ){
-//        //TODO: 로그인한 유저정보 가져오기
-//        Long userId = AuthHolder.getUserId();
-        Long userId = 1L;
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory);
         log.info("배너상품 동물분류: " + animalCategory + getRequestDto.getAnimalCategory());
 
-        String purchasedList = productService.getMostPurchased(getRequestDto, userId);
+        String purchasedList = productService.getMostPurchased(getRequestDto);
         return ResponseEntity.ok(purchasedList);
     }
 
@@ -99,16 +96,33 @@ public class ProductController {
      */
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/product/detail/{productId}")
-    public ResponseEntity<List<ProductResponseDto>> getProduct(
-            @PathVariable Integer productId
+    public ResponseEntity<ProductResponseDto> getProduct(
+            @PathVariable Long productId
 
     ) {
-        List<ProductResponseDto> product = productService.getProduct(productId);
+        ProductResponseDto product = productService.getProduct(productId);
         return ResponseEntity.ok(product);
     }
 
+    @CrossOrigin(origins = "*")
+    @GetMapping("v1/api/total")
+    public ResponseEntity<String> getProducts(
+            //@PathVariable(required = false) String sortBy,
+            @RequestParam(required = false) String searchWord,
+            @RequestParam(required = false) Integer page
+    ){
+        //GetRequestDto getRequestDto = new GetRequestDto(null, null, sortBy);
+        //log.info("sortBy: " + sortBy + getRequestDto.getSortBy());
+        log.info("searchWord: " + searchWord);
+        log.info("page: " + page);
+        int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
+
+        String resultList = productService.getProductList(searchWord, pageNumber);
+        return ResponseEntity.ok(resultList);
+    }
+
     /**
-     * 상품 리스트 페이지
+     * 상품 리스트 페이지 상세검색
      * @param animalCategory
      * @param productCategory
      * @param sortBy
@@ -121,7 +135,7 @@ public class ProductController {
             "v1/api/product/{animalCategory}" ,
             "v1/api/product/{animalCategory}/{productCategory}",
             "v1/api/product/{animalCategory}/{productCategory}/{sortBy}"})
-    public ResponseEntity<String> getProducts(
+    public ResponseEntity<String> getProductsWithFilter(
             @PathVariable(required = false) String animalCategory,
             @PathVariable(required = false) String productCategory,
             @PathVariable(required = false) String sortBy,
@@ -129,15 +143,16 @@ public class ProductController {
             @RequestParam(required = false) Integer page
     ) {
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory, sortBy);
+        int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
         log.info("animalCategory: " + animalCategory + getRequestDto.getAnimalCategory());
         log.info("productCategory: " + productCategory + getRequestDto.getProductCategory());
         log.info("sortBy: " + sortBy + getRequestDto.getSortBy());
         log.info("searchWord: " + searchWord);
-        log.info("page: " + page);
-        int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
+        log.info("page: " + pageNumber);
+
 
         //메인페이지 상품리스트
-        String products = productService.getProductsList(getRequestDto, searchWord, pageNumber);
+        String products = productService.getProductsListWithFilter(getRequestDto, searchWord, pageNumber);
 
         return ResponseEntity.ok(products);
     }
@@ -149,10 +164,16 @@ public class ProductController {
     @CrossOrigin(origins = "*")
     @GetMapping("v1/api/product/wish")
     public ResponseEntity<List<GetWishListDto>> getWishList(){
-        //TODO: 로그인한 유저정보 가져오기
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-        long userId = 1L;
+        //로그인이 필요합니다.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // 웹 애플리케이션에서는 인증되지 않은 사용자라도 익명 인증 객체를 가지고 있게 되며, 이를 통해 Spring Security가 사용자의 로그인 상태를 관리합니다.
+        // 따라서 authentication != null은 항상 true가 될 것입니다.
+        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() instanceof AnonymousAuthenticationToken))
+            throw new ProductException(ProductErrorCode.INVALID_USER);
+
+        long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
+//        long userId = 1L;
         List<GetWishListDto> wishList = productService.getWishList(userId);
         return ResponseEntity.ok(wishList);
     }
@@ -166,10 +187,14 @@ public class ProductController {
     public ResponseEntity<ResponseMessageDto> addWishList(
             @PathVariable Integer productId
     ){
-        //TODO: 로그인한 유저정보 가져오기
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-        long userId = 1L;
+        //로그인이 필요합니다.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() instanceof AnonymousAuthenticationToken))
+            throw new ProductException(ProductErrorCode.INVALID_USER);
+
+        long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
+
         Wish wish = productService.addWishList(userId, (long)productId);
         return ResponseEntity.ok(new ResponseMessageDto("상품명: " + wish.getProduct().getProductName() + "이(가) 관심상품으로 등록되었습니다."));
     }
@@ -183,10 +208,14 @@ public class ProductController {
     public ResponseEntity<ResponseMessageDto> deleteWishList(
             @PathVariable Integer productId
     ){
-        //TODO: 로그인한 유저정보 가져오기
-        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        //String email = authentication.getName();
-        long userId = 1L;
+        //로그인이 필요합니다.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() instanceof AnonymousAuthenticationToken))
+            throw new ProductException(ProductErrorCode.INVALID_USER);
+
+        long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
+
         productService.deleteWishList(userId, (long)productId);
         return ResponseEntity.ok(new ResponseMessageDto("관심상품 삭제됨"));
     }
