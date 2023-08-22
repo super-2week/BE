@@ -1,10 +1,1 @@
-cloud:
-  aws:
-    baseUrl : https://productdata-ec2-commerce03.s3.ap-northeast-2.amazonaws.com/
-    s3:
-      bucket: productdata-ec2-commerce03
-    stack.auto: false
-    region.static: ap-northeast-2
-    credentials:
-      accessKey: AKIARUWLXGNMRCCGD65J
-      secretKey: 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
+
