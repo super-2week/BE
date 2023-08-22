@@ -35,6 +35,7 @@ public class ProductService {
     private final UserRepository userRepository;
     private final ConvertCategory convertCategory;
     private final SearchWishList searchWishList;
+    private int firstPageSize = 0;
 
     public ProductService(EntityManager entityManager, ProductRepository productRepository, WishRepository wishRepository, UserRepository userRepository, ConvertCategory convertCategory, SearchWishList searchWishList) {
         this.entityManager = entityManager;
@@ -55,7 +56,7 @@ public class ProductService {
         String sortBy = convertCategory.convertSortBy(getRequestDto.getSortBy());
         JSONObject resultObject = new JSONObject();
         JSONArray resultArray = new JSONArray();
-        List resultList;
+        List resultList = null;
 
         String query =
                 "SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
@@ -99,10 +100,12 @@ public class ProductService {
         List<ProductDto> products = jpqlQuery.getResultList();
         List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
 
+
         if(pageNumber == 1){
-            totalLength = 32;
-        } else{
-            totalLength = 32 + (pageNumber - 2) * 12 + products.size();
+            totalLength = products.size(); //32 혹은 그 미만
+            firstPageSize = products.size();
+        } else {
+            totalLength = firstPageSize + (pageNumber - 2) * 12 + products.size();
         }
 
         if ("wishCount".equals(sortBy)) {

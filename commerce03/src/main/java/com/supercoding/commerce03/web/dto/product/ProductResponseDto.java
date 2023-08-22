@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.web.dto.product;
 
+import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.store.entity.Store;
 import com.supercoding.commerce03.web.dto.product.util.AnimalCategory;
 import com.supercoding.commerce03.web.dto.product.util.ProductCategory;
@@ -56,6 +57,14 @@ public class ProductResponseDto {
                 .purchaseCount(productDto.getPurchaseCount())
                 .createdAt(productDto.getCreatedAt())
                 .isLiked(productDto.isLiked())
+                .build();
+    }
+
+    public static ProductResponseDto fromSearch(Product product){
+        return ProductResponseDto.builder()
+                .id(product.getId())
+                .productName(product.getProductName())
+                .description(product.getDescription())
                 .build();
     }
 }
