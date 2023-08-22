@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.web.dto.product;
 
+import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.store.entity.Store;
 import lombok.*;
 
@@ -44,6 +45,27 @@ public class ProductDto {
         this.purchaseCount = purchaseCount;
         this.createdAt = createdAt;
         this.store = store;
+    }
+
+    public static ProductDto fromEntity(Product product){
+        return ProductDto.builder()
+                .id(product.getId())
+                .animalCategory(product.getAnimalCategory())
+                .productCategory(product.getProductCategory())
+                .productName(product.getProductName())
+                .storeName(product.getStore().getStoreName())
+                .price(product.getPrice())
+                .imageUrl(product.getImageUrl())
+                .modelNum(product.getModelNum())
+                .originLabel(product.getOriginLabel())
+                .description(product.getDescription())
+                .stock(product.getStock())
+                .wishCount(product.getWishCount())
+                .purchaseCount(product.getPurchaseCount())
+                .createdAt(product.getCreatedAt())
+                .isLiked(false)
+                .store(product.getStore())
+                .build();
     }
 
 }

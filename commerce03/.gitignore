@@ -273,3 +273,4 @@ gradle-app.setting
 
 # DB connection
 src/main/resources/mysql.yml
+src/main/resources/s3.yml
