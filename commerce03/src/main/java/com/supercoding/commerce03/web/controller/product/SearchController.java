@@ -2,8 +2,6 @@ package com.supercoding.commerce03.web.controller.product;
 
 import com.supercoding.commerce03.service.product.SearchService;
 import com.supercoding.commerce03.web.dto.product.GetRequestDto;
-import com.supercoding.commerce03.web.dto.product.ProductDto;
-import com.supercoding.commerce03.web.dto.product.ProductResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
