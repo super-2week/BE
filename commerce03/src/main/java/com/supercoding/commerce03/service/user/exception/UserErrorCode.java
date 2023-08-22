@@ -19,6 +19,8 @@ public enum UserErrorCode {
     INVALID_LOGIN_INPUT("해당 회원은 없습니다 다시 한번 입력 해줏세요 ",HttpStatus.BAD_REQUEST),
     EXPIRED_TOKEN("만료된 토큰입니다. 인증을 다시 받아주세요",HttpStatus.UNAUTHORIZED),
 
+    HANDLE_ACCESS_DENIED("로그인이 필요합니다",HttpStatus.FORBIDDEN),
+
     //status(HttpStatus.NOT_FOUND) 404
     USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND);
 
