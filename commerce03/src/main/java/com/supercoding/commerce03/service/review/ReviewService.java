@@ -9,8 +9,10 @@ import com.supercoding.commerce03.repository.review.ReviewImageRepository;
 import com.supercoding.commerce03.repository.review.ReviewRepository;
 import com.supercoding.commerce03.repository.review.entity.Review;
 import com.supercoding.commerce03.repository.review.entity.ReviewImage;
+import com.supercoding.commerce03.repository.user.UserDetailRepository;
 import com.supercoding.commerce03.repository.user.UserRepository;
 import com.supercoding.commerce03.repository.user.entity.User;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import com.supercoding.commerce03.service.S3.S3Service;
 import com.supercoding.commerce03.service.review.exception.ReviewErrorCode;
 import com.supercoding.commerce03.service.review.exception.ReviewException;
@@ -33,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReviewService {
 
 	private final UserRepository userRepository;
+	private final UserDetailRepository userDetailRepository;
 	private final ProductRepository productRepository;
 	private final ReviewRepository reviewRepository;
 	private final ReviewImageRepository reviewImageRepository;
@@ -46,6 +49,7 @@ public class ReviewService {
 		Long inputProductId = request.getProductId();
 
 		User validatedUser = validateUser(userId);
+		UserDetail validateUserDetail = validateUserDetail(userId);
 		Product validatedProduct = validateProduct(inputProductId);
 		validateReviewAuthorization(userId, inputProductId);
 
@@ -59,7 +63,9 @@ public class ReviewService {
 		List<String> imageUrls = s3Service.uploadFiles(multipartFile);
 		saveReviewImage(review, imageUrls);
 
-		return ReviewDto.fromEntity(review);
+		ReviewDto reviewDto = ReviewDto.fromEntity(review);
+		reviewDto.setUserEmail(validateUserDetail.getEmail());
+		return reviewDto;
 	}
 
 	@Transactional
@@ -68,6 +74,7 @@ public class ReviewService {
 		Long inputReviewId = request.getReviewId();
 
 		User validatedUser = validateUser(userId);
+		UserDetail validateUserDetail = validateUserDetail(userId);
 		Review validateReview = validateReview(inputReviewId);
 
 		if (isNotReviewer(validatedUser.getId(), validateReview)) {
@@ -81,13 +88,16 @@ public class ReviewService {
 		List<String> imageUrls = s3Service.uploadFiles(multipartFile);
 		saveReviewImage(validateReview, imageUrls);
 
-		return ReviewDto.fromEntity(validateReview);
+		ReviewDto reviewDto = ReviewDto.fromEntity(validateReview);
+		reviewDto.setUserEmail(validateUserDetail.getEmail());
+		return reviewDto;
 	}
 
 	@Transactional
 	public ReviewDto deleteReview(Long reviewId, Long userId){
 
 		User validatedUser = validateUser(userId);
+		UserDetail validateUserDetail = validateUserDetail(userId);
 		Review validateReview = validateReview(reviewId);
 
 		if (isNotReviewer(validatedUser.getId(), validateReview)) {
@@ -97,7 +107,9 @@ public class ReviewService {
 		deleteReviewImage(validateReview);
 		validateReview.setIsDeleted(true);
 
-		return ReviewDto.fromEntity(validateReview);
+		ReviewDto reviewDto = ReviewDto.fromEntity(validateReview);
+		reviewDto.setUserEmail(validateUserDetail.getEmail());
+		return reviewDto;
 	}
 
 	public Page<ReviewDto> getReview(Long productId, Long cursor, Integer pageSize){
@@ -112,6 +124,10 @@ public class ReviewService {
 	private User validateUser(Long userId){
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new ReviewException(ReviewErrorCode.USER_NOT_FOUND));
+	}
+
+	private UserDetail validateUserDetail(Long userId){
+		return userDetailRepository.findByUserId(userId);
 	}
 
 	private Product validateProduct(Long productId){
