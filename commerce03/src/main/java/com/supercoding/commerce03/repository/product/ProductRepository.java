@@ -111,10 +111,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
 
     @Query(
-            value= "SELECT COUNT(*) FROM products p WHERE (:searchWord IS NULL OR p.product_name LIKE :searchWord OR p.description LIKE :searchWord)",
+            value= "SELECT COUNT(*) FROM products p " +
+                    "WHERE (p.product_name LIKE :searchWord OR p.description LIKE :searchWord)",
             nativeQuery = true
     )
     Integer getCount(
+            @Param("searchWord") String searchWord
+    );
+
+    @Query(
+            value= "SELECT COUNT(*) FROM products p " +
+                    "WHERE p.animal_category = :animalCategory " +
+                    "AND p.product_category = :productCategory " +
+                    "AND (:searchWord IS NULL OR (:searchWord IS NOT NULL AND (p.product_name LIKE %:searchWord% OR p.description LIKE %:searchWord%)))",
+            nativeQuery = true
+    )
+    Integer getCountWithFilter(
+            @Param("animalCategory") Integer animalCategory,
+            @Param("productCategory") Integer productCategory,
             @Param("searchWord") String searchWord
     );
 

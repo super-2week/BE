@@ -1,6 +1,8 @@
 package com.supercoding.commerce03.web.controller.cart;
 
 import com.supercoding.commerce03.service.cart.CartService;
+import com.supercoding.commerce03.service.security.Auth;
+import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.web.dto.cart.AddCart;
 import com.supercoding.commerce03.web.dto.cart.GetCart;
 import com.supercoding.commerce03.web.dto.cart.RemoveCart;
@@ -25,12 +27,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class CartController {
 
 	private final CartService cartService;
-
+	@Auth
 	@PostMapping
 	public ResponseEntity<AddCart.Response> add(
 			@RequestBody AddCart.Request request
 	){
-			Long userId = 1L;
+			Long userId = AuthHolder.getUserId();
 			return ResponseEntity.ok(
 					AddCart.Response.from(
 							cartService.addToCart(request, userId)
@@ -38,11 +40,12 @@ public class CartController {
 			);
 	}
 
+	@Auth
 	@DeleteMapping("/{cartId}")
 	public ResponseEntity<RemoveCart.Response> remove(
 			@PathVariable("cartId") Long cartId
 	){
-			Long userId = 1L;
+			Long userId = AuthHolder.getUserId();
 			return ResponseEntity.ok(
 					RemoveCart.Response.from(
 							cartService.removeFromCart(cartId, userId)
@@ -50,12 +53,13 @@ public class CartController {
 			);
 	}
 
+	@Auth
 	@GetMapping
 	public ResponseEntity<Page<GetCart.Response>> get(
 			@RequestParam(defaultValue = "0") Long cursor,
 			@RequestParam(defaultValue = "10") Integer pageSize
 	){
-			Long userId = 1L;
+			Long userId = AuthHolder.getUserId();
 			return ResponseEntity.ok(
 					cartService.getCart(userId, cursor, pageSize).map(GetCart.Response::from)
 			);

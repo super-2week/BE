@@ -3,6 +3,7 @@ package com.supercoding.commerce03.web.dto.review;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.review.entity.Review;
 import com.supercoding.commerce03.repository.review.entity.ReviewImage;
+import com.supercoding.commerce03.repository.user.entity.UserDetail;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,18 +21,21 @@ import lombok.Setter;
 public class ReviewDto {
 
 	private Long userId;
+	private String author;
 	private Long productId;
 	private Long reviewId;
 	private String title;
 	private String content;
 	private LocalDateTime createAt;
 	private List<ReviewImage> reviewImages = new ArrayList<>();
+	private String userEmail;
 
 
 	public static ReviewDto fromEntity(Review review){
 		Product product = review.getProduct();
 		return ReviewDto.builder()
 				.userId(review.getUser().getId())
+				.author(review.getAuthor())
 				.productId(product.getId())
 				.reviewId(review.getId())
 				.title(review.getTitle())

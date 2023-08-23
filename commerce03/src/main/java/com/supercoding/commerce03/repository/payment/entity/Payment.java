@@ -49,7 +49,7 @@ public class Payment {
 	public static Payment createPayment(User user) {
 		Payment payment = new Payment();
 		payment.setUser(user);
-		payment.setBusinessType(BusinessByType.valueOf(BusinessByType.CREATE.getKey()));
+		payment.setBusinessType(BusinessByType.CREATE);
 		payment.setCreatedAt(payment.createdAt);
 		payment.setCoin(0);
 		payment.setTotalCoin(0);

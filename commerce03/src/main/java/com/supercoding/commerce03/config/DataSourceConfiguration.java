@@ -20,6 +20,7 @@ public class DataSourceConfiguration {
 
     public static final String MASTER_DATASOURCE = "masterDataSource";
     public static final String SLAVE_DATASOURCE = "slaveDataSource";
+    public static final String SLAVE_DATASOURCE2 = "slaveDataSource2";
 
     @Bean(MASTER_DATASOURCE)
     @ConfigurationProperties(prefix = "spring.datasource.master.hikari") // (1)
@@ -39,17 +40,28 @@ public class DataSourceConfiguration {
                 .build();
     }
 
+    @Bean(SLAVE_DATASOURCE2)
+    @ConfigurationProperties(prefix = "spring.datasource.slave2.hikari")
+    public DataSource slaveDataSource2() {
+        log.info("------------slaveDB_connected------------");
+        return DataSourceBuilder.create()
+                .type(HikariDataSource.class)
+                .build();
+    }
+
     @Bean
-    @DependsOn({MASTER_DATASOURCE, SLAVE_DATASOURCE})
+    @DependsOn({MASTER_DATASOURCE, SLAVE_DATASOURCE, SLAVE_DATASOURCE2})
     public DataSource routingDataSource(
             @Qualifier(MASTER_DATASOURCE) DataSource masterDataSource,
-            @Qualifier(SLAVE_DATASOURCE) DataSource slaveDataSource) {
-
+            @Qualifier(SLAVE_DATASOURCE) DataSource slaveDataSource,
+            @Qualifier(SLAVE_DATASOURCE2) DataSource slaveDataSource2
+    ) {
         RoutingDataSource routingDataSource = new RoutingDataSource();
         Map<Object, Object> datasource = new HashMap<>();
 
         datasource.put("master", masterDataSource);
         datasource.put("slave", slaveDataSource);
+        datasource.put("slave2", slaveDataSource2);
         routingDataSource.setTargetDataSources(datasource);
         routingDataSource.setDefaultTargetDataSource(masterDataSource);
 
