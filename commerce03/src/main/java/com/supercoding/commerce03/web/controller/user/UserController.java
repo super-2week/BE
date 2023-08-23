@@ -3,6 +3,7 @@ package com.supercoding.commerce03.web.controller.user;
 import com.supercoding.commerce03.service.security.Auth;
 import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.service.user.UserService;
+import com.supercoding.commerce03.web.dto.user.EmailConfirm;
 import com.supercoding.commerce03.web.dto.user.Login;
 import com.supercoding.commerce03.web.dto.user.SignUp;
 import com.supercoding.commerce03.web.dto.user.UpdateProfile;
@@ -33,9 +34,10 @@ public class UserController {
     public ResponseEntity<Object> signUp(@Validated @RequestBody SignUp signUp) {
         return ResponseEntity.ok(userService.signUp(signUp));
     }
+
     @PostMapping("/emailConfirm")
-    public ResponseEntity<Object> emailCheck(@RequestParam String email) {
-        String message = userService.emailDuplicate(email);
+    public ResponseEntity<Object> emailCheck(@RequestBody EmailConfirm emailConfirm) {
+        String message = userService.emailDuplicate(emailConfirm);
         return ResponseEntity.ok(message);
     }
 
