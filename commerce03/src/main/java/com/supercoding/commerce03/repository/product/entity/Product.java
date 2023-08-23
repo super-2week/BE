@@ -49,7 +49,7 @@ public class Product {
 	@Column(name = "product_name", nullable = false, length = 100)
 	private String productName;
 
-	@Column(name = "model_num", length = 20, columnDefinition = "varchar(20) default 'INTP1212'")
+	@Column(name = "model_num", length = 20, columnDefinition = "varchar(20) default 'ABCD1234'")
 	private String modelNum;
 
 	@Column(name = "origin_label", nullable = false, length = 20, columnDefinition = "varchar(20) default '한국'")
@@ -72,7 +72,5 @@ public class Product {
 
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
-
-
 
 }

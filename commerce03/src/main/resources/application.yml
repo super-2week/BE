@@ -18,8 +18,9 @@ spring:
         password: ${DB_PASSWORD}
         driver-class-name: com.mysql.cj.jdbc.Driver
         jdbc-url: jdbc:mysql://${DB_HOST_SLAVE2}:3306/${DB_NAME}
-
   jpa:
+    #    로컬
+#    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update

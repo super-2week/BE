@@ -20,7 +20,7 @@ public class SearchService {
     @Transactional(readOnly = true)
     public List<String> searchFullText(GetRequestDto getRequestDto, String searchWord){
 
-        String keyWord = searchWord + "*";
+        String keyWord = "%" + searchWord + "%";
 
         List<Object[]> wordList = productRepository.fullTextSearch(keyWord);
         List<String> words = new ArrayList<>();
