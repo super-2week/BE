@@ -13,6 +13,7 @@ public class OrderDto {
 
     @Getter
     @AllArgsConstructor
+    @Builder
     @ToString
     public static class RequestOrderProduct{
         private Long id;
@@ -22,6 +23,7 @@ public class OrderDto {
 
     @Getter
     @Setter
+    @Builder
     @AllArgsConstructor
     @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class OrderRegisterRequest{
