@@ -37,7 +37,7 @@ public class Product {
 	@JoinColumn(name = "store_id")
 	private Store store;
 
-	@Column(name = "image_url", length = 50) //null 허용
+	@Column(name = "image_url", length = 200) //null 허용
 	private String imageUrl;
 
 	@Column(name = "animal_category", nullable = false) //1~4
@@ -46,10 +46,10 @@ public class Product {
 	@Column(name = "product_category", nullable = false) //1~6
 	private Integer productCategory;
 
-	@Column(name = "product_name", nullable = false, length = 20)
+	@Column(name = "product_name", nullable = false, length = 100)
 	private String productName;
 
-	@Column(name = "model_num", nullable = true, length = 20)
+	@Column(name = "model_num", length = 20, columnDefinition = "varchar(20) default 'INTP1212'")
 	private String modelNum;
 
 	@Column(name = "origin_label", nullable = false, length = 20, columnDefinition = "varchar(20) default '한국'")

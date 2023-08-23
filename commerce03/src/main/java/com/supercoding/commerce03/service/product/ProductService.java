@@ -130,7 +130,8 @@ public class ProductService {
         resultObject.put("products", resultList);
         if(pageNumber==1) {
             //첫페이지 에서만 상품의 totalLength(총 개수) 반환
-            totalLength = productRepository.getCount("%"+searchWord+"%");
+            totalLength = productRepository.getCountWithFilter(animalCategory, productCategory, searchWord);
+            System.out.println("3333333333333"+totalLength);
             resultObject.put("totalLength", totalLength);
         }
         return resultArray.put(resultObject).toString();

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -17,12 +18,14 @@ public class SearchService {
     private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
-    public List<Object[]> searchFullText(GetRequestDto getRequestDto, String searchWord){
+    public List<String> searchFullText(GetRequestDto getRequestDto, String searchWord){
 
         String keyWord = searchWord + "*";
 
         List<Object[]> wordList = productRepository.fullTextSearch(keyWord);
-        return wordList;//.stream().map(SearchWordListDto::fromSearch).collect(Collectors.toList());
+        List<String> words = new ArrayList<>();
+        wordList.forEach(w -> words.add((String)w[0]));
+        return words;//.stream().map(SearchWordListDto::fromSearch).collect(Collectors.toList());
 
     }
 

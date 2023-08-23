@@ -137,7 +137,7 @@ public class ProductController {
     ) {
         GetRequestDto getRequestDto = new GetRequestDto(animalCategory, productCategory, sortBy);
         int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
-
+        log.info("2222222222"+pageNumber);
         //메인페이지 상품리스트
         String products = productService.getProductsListWithFilter(getRequestDto, searchWord, pageNumber);
 
