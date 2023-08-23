@@ -10,6 +10,7 @@ import com.supercoding.commerce03.service.payment.exception.PaymentErrorCode;
 import com.supercoding.commerce03.service.payment.exception.PaymentException;
 
 import com.supercoding.commerce03.web.dto.payment.Charge;
+import com.supercoding.commerce03.web.dto.payment.TotalCoin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,28 +54,17 @@ public class PaymentService {
         return Charge.Response.from(validatedPayment);
     }
 
-//    public TotalCoin.Response totalCoinList(Long userId, Pageable pageable) {
-//        Payment validatedPayment = validatePayment(userId);
-//
-//        Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedPayment.getId(), pageable);
-//
-//        List<TotalCoin.Response.paymentDetail> responsePaymentDetails = paymentDetails.stream().map(paymentDetail ->
-//                TotalCoin.Response.paymentDetail.builder()
-//                        .totalCoin(paymentDetail.getTotalPayCoin())
-//                        .createdAt(paymentDetail.getCreatedAt())
-//                        .coin(paymentDetail.getPayCoin())
-//                        .businessType(paymentDetail.getBusinessType().getKey())
-//                        .build()
-//        ).collect(Collectors.toList());
-//            return TotalCoin.Response.from(validatedPayment, responsePaymentDetails);
-//    }
-
-    public Page<Charge.Response> findByPaymentId(Long userId, Pageable pageable) {
+    public TotalCoin.Response findByPaymentId(Long userId, Pageable pageable) {
         Payment validatedPayment = validatePayment(userId);
         Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedPayment.getId(), pageable);
-        return paymentDetails.map(Charge.Response::from);
+        List<TotalCoin.Response.PaymentDetail> paymentDetailList = paymentDetails.stream().map(paymentDetail -> TotalCoin.Response.PaymentDetail.builder()
+                .totalCoin(paymentDetail.getTotalPayCoin())
+                .businessType(paymentDetail.getBusinessType().getKey())
+                .coin(paymentDetail.getPayCoin())
+                .createdAt(paymentDetail.getCreatedAt())
+                .build()).collect(Collectors.toList());
+             return TotalCoin.Response.from(validatedPayment, paymentDetailList);
     }
-
 
     public void cancelByBusiness(Long userId, Integer totalAmount) {
 
