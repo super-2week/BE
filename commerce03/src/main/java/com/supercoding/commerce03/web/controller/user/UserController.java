@@ -9,6 +9,7 @@ import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,7 +30,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<Object> signUp(@RequestBody SignUp signUp) {
+    public ResponseEntity<Object> signUp(@Validated @RequestBody SignUp signUp) {
         return ResponseEntity.ok(userService.signUp(signUp));
     }
     @PostMapping("/emailConfirm")
@@ -61,7 +62,7 @@ public class UserController {
 
     @Auth
     @PatchMapping
-    public ResponseEntity<Object>updateProfile(@RequestPart UpdateProfile updateProfile
+    public ResponseEntity<Object>updateProfile(@Validated @RequestPart UpdateProfile updateProfile
         ,@RequestPart MultipartFile multipartFile){
 
         Long userId = AuthHolder.getUserId();

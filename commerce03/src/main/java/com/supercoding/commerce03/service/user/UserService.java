@@ -37,45 +37,23 @@ public class UserService {
 
     public String signUp(SignUp signUp) {
         //비지니스 로직(들어오는것들을 검증하는 부분)
-        validatedPhoneNumber(signUp.getPhoneNumber());
-        validatedPassword(signUp.getPassword());
 
         //검증된 정보들
-
         User user = userRepository.save(User.toEntity(signUp));
-        log.info("잡았다");
+        paymentService.createPayment(user);
         userDetailRepository.save(
             UserDetail.toEntity(user, signUp, passwordEncoder.encode(signUp.getPassword())));
-        log.info("잡았다");
 
         return "회원가입이 성공적으로 완료되었습니다";
     }
 
     public String emailDuplicate(String email) {
        boolean checkEmail = userDetailRepository.existsByEmail(email);
-       log.info("너 중복이니? {}",checkEmail);
         if (checkEmail) {
             throw new UserException(UserErrorCode.EMAIL_DUPLICATION);
         }
             return "사용가능한 이메일입니다";
     }
-
-    public void validatedPhoneNumber(String phoneNumber) {
-        if (phoneNumber.length() != 11) {
-            throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER);
-        }
-    }
-
-    public void validatedPassword(String password) {
-        if (password.length() < 8) {
-            throw new UserException(UserErrorCode.INVALID_PASSWORD);
-        }
-        if (!password.matches(
-            "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$")) {
-            throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_PATTERN);
-        }
-    }
-
 
     public Login.Response login(Login.Request loginRequest) {
         Optional<UserDetail> optionalUserDetail = userDetailRepository.findByEmail(
@@ -97,16 +75,11 @@ public class UserService {
             .build();
     }
 
-    public String makeLoginResponse(User user, UserDetail loginUser) {
-        return JwtTokenProvider.createToken(user, loginUser);
-    }
-
     public User getLoginUser(Long userId) {
         if (userId == null) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
         }
         Optional<User> optionalUser = userRepository.findById(userId);
-        log.info("여기네 {}", optionalUser.isEmpty());
         if (optionalUser.isEmpty()) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
         }
@@ -115,7 +88,6 @@ public class UserService {
 
     @Transactional
     public String deleteUser(Long userId) {
-        log.info("여기네 {}", userId);
         if (userId == null) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
         }
@@ -137,8 +109,6 @@ public class UserService {
     @Transactional
     public String updateUser(Long userId, UpdateProfile updateProfile, MultipartFile multipartFile) {
 
-        validatedPassword(updateProfile.getPassword());//비밀번호 정책
-
         User user = userRepository.findById(userId)
             .orElseThrow(()-> new UserException(UserErrorCode.USER_NOT_FOUND));
 
@@ -157,5 +127,8 @@ public class UserService {
 
         User.update(user,updateProfile);
         return "회원수정이 성공적으로 완료되었습니다";
+    }
+    public String makeLoginResponse(User user, UserDetail loginUser) {
+        return JwtTokenProvider.createToken(user, loginUser);
     }
 }
