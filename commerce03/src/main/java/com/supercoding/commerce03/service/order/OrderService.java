@@ -13,6 +13,7 @@ import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +40,7 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     private final PaymentService paymentService;
+
 
     private DecimalFormat df = new DecimalFormat("###,###");
 
@@ -91,6 +97,7 @@ public class OrderService {
 
         //  물품 재고값 변경(재고 0보다 작아지면 재고 부족 Exception) + 구매 횟수 변경
         List<OrderDetail> orderDetails = orderDetailRepository.findOrderDetailsByOrder(order);
+        decreaseStockAndIncreasePurchaseAmount(orderDetails, order, userId, totalAmount);
         orderDetails.stream().forEach((orderDetail) -> {
             Product productChangingAmount
                     = productRepository.findById(orderDetail.getProduct().getId())
@@ -100,7 +107,6 @@ public class OrderService {
             if (stockToChange >= 0) {
                 productChangingAmount.setStock(stockToChange);
                 productChangingAmount.setPurchaseCount(purchaseCountToChange);
-                productRepository.save(productChangingAmount);
                 order.setStatus("결제 완료");
                 log.info("stock : " + productChangingAmount.getStock());
             } else {
@@ -173,8 +179,6 @@ public class OrderService {
         order.setStatusAndTimeNow("주문 취소");
 
 
-        orderRepository.save(order);
-
         OrderDto.OrderCancelResponse orderCancelResponse
                 = new OrderDto.OrderCancelResponse("주문이 정상적으로 취소 되었습니다.");
 
@@ -221,7 +225,6 @@ public class OrderService {
         orderToDeleted.setIsDeleted(true);
         orderToDeleted.setModifiedAt(LocalDateTime.now());
 
-        orderRepository.save(orderToDeleted);
 
         return "요청하신 orderId " + orderId + "의 주문 내역이 삭제되었습니다.";
     }
@@ -229,7 +232,7 @@ public class OrderService {
     public OrderDto.OrderResponse orderViewDetail(Long userId, String orderId) {
         Order order = validOrder(Long.valueOf(orderId));
         User user = validUser(userId);
-        if(!user.equals(order.getUser())){
+        if (!user.equals(order.getUser())) {
             throw new OrderException(OrderErrorCode.NO_PERMISSION_TO_VIEW);
         }
 
@@ -274,6 +277,63 @@ public class OrderService {
     private Order validOrder(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+    }
+
+    @Transactional
+    public void decreaseStockAndIncreasePurchaseAmount(List<OrderDetail> orderDetails, Order order, Long userId, Integer totalAmount) {
+
+        orderDetails.stream().forEach((orderDetail) -> {
+
+            InMemorySpinLock inMemorySpinLock = new InMemorySpinLock();
+            inMemorySpinLock.acquireLock(orderDetail.getProduct().getId());
+
+            Product productChangingAmount
+                    = productRepository.findById(orderDetail.getProduct().getId())
+                    .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
+
+            Integer stockToChange = productChangingAmount.getStock() - orderDetail.getAmount();
+            Integer purchaseCountToChange = productChangingAmount.getPurchaseCount() + orderDetail.getAmount();
+            if (stockToChange >= 0) {
+                productChangingAmount.setStock(stockToChange);
+                productChangingAmount.setPurchaseCount(purchaseCountToChange);
+                productRepository.save(productChangingAmount);
+                order.setStatus("결제 완료");
+                inMemorySpinLock.releaseLock(orderDetail.getProduct().getId());
+                log.info("stock : " + productChangingAmount.getStock());
+            } else {
+
+                //TODO : 결제 취소 로직 추가
+                paymentService.cancelByBusiness(userId, totalAmount);
+                throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
+            }
+        });
+
+
+    }
+
+    // 인메모리 스핀락
+
+    public static class InMemorySpinLock {
+
+        private final ConcurrentHashMap<Long, Lock> stockLockMap = new ConcurrentHashMap<>();
+        public String acquireLock(Long resourceKey) {
+            Lock lock = stockLockMap.computeIfAbsent(resourceKey, key -> new ReentrantLock());
+            while (true) {
+                if (lock.tryLock()) return "Locked";
+                try {
+                    TimeUnit.MICROSECONDS.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        public void releaseLock(Long resourceKey) {
+            Lock lock = stockLockMap.get(resourceKey);
+            if (lock != null) {
+                lock.unlock();
+            }
+        }
     }
 
 
