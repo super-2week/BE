@@ -10,6 +10,8 @@ import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
 import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.web.dto.cart.AddCart;
 import com.supercoding.commerce03.web.dto.cart.CartDto;
+import com.supercoding.commerce03.web.dto.cart.ModifyCart;
+import com.supercoding.commerce03.web.dto.cart.ModifyCart.Request;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -69,6 +71,22 @@ public class CartService {
 		Page<Cart> carts = cartRepository.findAllByUserIdAndIsDeletedWithCursor(
 				userId, false, cursor, PageRequest.of(0, pageSize));
 		return carts.map(CartDto::fromEntity);
+	}
+	@Transactional
+	public CartDto modifyCart(Request request, Long userId){
+
+		Long inputCartId = request.getCartId();
+		Long inputProductId = request.getProductId();
+		Integer inputQuantity = request.getQuantity();
+
+		validateUser(userId);
+		Product validatedProduct = validateProduct(inputProductId);
+		validateQuantity(inputQuantity, validatedProduct);
+		Cart validatedCart = validateCart(inputCartId, userId);
+
+		validatedCart.setQuantity(inputQuantity);
+
+		return CartDto.fromEntity(validatedCart);
 	}
 
 	private User validateUser(Long userId){
