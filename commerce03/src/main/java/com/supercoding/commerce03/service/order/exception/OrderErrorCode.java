@@ -21,7 +21,8 @@ public enum OrderErrorCode {
     ORDER_NOT_FOUND("해당 주문이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
 
     OUT_OF_STOCK("주문한 상품의 재고가 부족합니다.",HttpStatus.CONFLICT),
-    LACK_OF_POINT("포인트가 주문 금액에 비해 부족합니다.",HttpStatus.CONFLICT);
+    LACK_OF_POINT("포인트가 주문 금액에 비해 부족합니다.",HttpStatus.CONFLICT),
+    ORDER_NOT_COMPLETED("해당 주문이 정상적으로 처리되지 않았습니다.", HttpStatus.CONFLICT);
 
 
     private final String description;
