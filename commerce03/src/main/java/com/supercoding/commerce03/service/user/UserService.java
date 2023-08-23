@@ -9,6 +9,7 @@ import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.service.security.JwtTokenProvider;
 import com.supercoding.commerce03.service.user.exception.UserErrorCode;
 import com.supercoding.commerce03.service.user.exception.UserException;
+import com.supercoding.commerce03.web.dto.user.EmailConfirm;
 import com.supercoding.commerce03.web.dto.user.Login;
 import com.supercoding.commerce03.web.dto.user.ProfileResponse;
 import com.supercoding.commerce03.web.dto.user.SignUp;
@@ -47,15 +48,13 @@ public class UserService {
 
         return "회원가입이 성공적으로 완료되었습니다";
     }
-
-    public String emailDuplicate(String email) {
-       boolean checkEmail = userDetailRepository.existsByEmail(email);
+    public String emailDuplicate(EmailConfirm emailConfirm) {
+       boolean checkEmail = userDetailRepository.existsByEmail(emailConfirm.getEmail());
         if (checkEmail) {
             throw new UserException(UserErrorCode.EMAIL_DUPLICATION);
         }
             return "사용가능한 이메일입니다";
     }
-
     @Transactional
     public Login.Response login(Login.Request loginRequest) {
         Optional<UserDetail> optionalUserDetail = userDetailRepository.findByEmail(
@@ -76,6 +75,7 @@ public class UserService {
             .Token(token)
             .build();
     }
+
     public User getLoginUser(Long userId) {
         if (userId == null) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
@@ -86,7 +86,6 @@ public class UserService {
         }
         return optionalUser.get();
     }
-
     @Transactional
     public String deleteUser(Long userId) {
         if (userId == null) {
@@ -98,7 +97,6 @@ public class UserService {
         user.setIsDeleted(true);
         return user.getUserName();
     }
-
     public ProfileResponse getProfile(Long userId) {
         UserDetail userDetail = userDetailRepository.findByUserId(userId);
         if (userId == null) {
@@ -106,7 +104,6 @@ public class UserService {
         }
         return ProfileResponse.fromEntity(userDetail);
     }
-
     @Transactional
     public String updateUser(Long userId, UpdateProfile updateProfile, MultipartFile multipartFile) {
 
@@ -129,6 +126,7 @@ public class UserService {
         User.update(user,updateProfile);
         return "회원수정이 성공적으로 완료되었습니다";
     }
+
     public String makeLoginResponse(User user, UserDetail loginUser) {
         return JwtTokenProvider.createToken(user, loginUser);
     }
