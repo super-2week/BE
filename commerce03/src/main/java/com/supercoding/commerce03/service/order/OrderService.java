@@ -66,56 +66,31 @@ public class OrderService {
                 .createdAt(LocalDateTime.now())
                 .postComment(orderRegisterRequest.getPostComment())
                 .user(user)
-
                 .build();
 
         // order 테이블에 주문 정보 저장.
         orderRepository.save(order);
 
         // 상품들  -> orderDetails 생성 및 테이블에 저장
-        orderRegisterRequest.getProducts().stream()
-                .forEach((product) -> {
-                            OrderDetail orderDetail
-                                    = OrderDetail.builder()
-                                    .amount(product.getAmount())
-                                    .order(order)
-                                    .price(product.getPrice())
-                                    .isDeleted(false)
-                                    .product(validProduct(product.getId()))
-                                    .build();
-                            orderDetailRepository.save(orderDetail);
-                        }
-                );
+        List<OrderDetail> orderDetails = orderRegisterRequest.getProducts().stream().map(product->orderDetailRepository.save(
+                OrderDetail.builder()
+                        .amount(product.getAmount())
+                        .order(order)
+                        .price(product.getPrice())
+                        .isDeleted(false)
+                        .product(validProduct(product.getId()))
+                        .build()
+        )).collect(Collectors.toList());
 
         order.setStatus("결제 대기");
 
 
         // TODO : 저장 했다면 ? -> 결제 service 의 금액 차감(결제 로직)
 //        금액 차감할 때, 금액 부족한 경우, => Exception // new OrderException(OrderErrorCode.LACK_OF_POINT));
-        paymentService.orderByBusiness(Long.valueOf(userId), totalAmount);
-
+        paymentService.orderByBusiness(userId, totalAmount);
 
         //  물품 재고값 변경(재고 0보다 작아지면 재고 부족 Exception) + 구매 횟수 변경
-        List<OrderDetail> orderDetails = orderDetailRepository.findOrderDetailsByOrder(order);
         decreaseStockAndIncreasePurchaseAmount(orderDetails, order, userId, totalAmount);
-        orderDetails.stream().forEach((orderDetail) -> {
-            Product productChangingAmount
-                    = productRepository.findById(orderDetail.getProduct().getId())
-                    .orElseThrow(() -> new OrderException(OrderErrorCode.PRODUCT_NOT_FOUND));
-            Integer stockToChange = productChangingAmount.getStock() - orderDetail.getAmount();
-            Integer purchaseCountToChange = productChangingAmount.getPurchaseCount() + orderDetail.getAmount();
-            if (stockToChange >= 0) {
-                productChangingAmount.setStock(stockToChange);
-                productChangingAmount.setPurchaseCount(purchaseCountToChange);
-                order.setStatus("결제 완료");
-                log.info("stock : " + productChangingAmount.getStock());
-            } else {
-
-                //TODO : 결제 취소 로직 추가
-                paymentService.cancelByBusiness(Long.valueOf(userId), totalAmount);
-                throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
-            }
-        });
 
 
         // orderedProducts dto list 생성
