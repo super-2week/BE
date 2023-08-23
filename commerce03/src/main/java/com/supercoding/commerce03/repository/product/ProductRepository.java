@@ -21,13 +21,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return
      */
 //Full Text Index
-    @Query(value =
-            "SELECT DISTINCT p.product_name FROM products p" +
-                    " WHERE MATCH(p.product_name) AGAINST(?1 IN BOOLEAN MODE)", nativeQuery = true)
-    //B-Tree Index
 //    @Query(value =
-//            "SELECT DISTINCT product_name FROM products p" +
-//                    " WHERE p.product_name LIKE ?1", nativeQuery = true)
+//            "SELECT DISTINCT p.product_name FROM products p" +
+//                    " WHERE MATCH(p.product_name) AGAINST(?1 IN BOOLEAN MODE)", nativeQuery = true)
+    //B-Tree Index
+    @Query(value =
+            "SELECT DISTINCT product_name FROM products p" +
+                    " WHERE p.product_name LIKE ?1", nativeQuery = true)
     List<Object[]> fullTextSearch(String searchWord);
 
 
@@ -37,13 +37,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param pageable
      * @return
      */
-    @Query("SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
-            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
-            "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store) " +
-            "FROM Product p " +
-            "WHERE ((p.productName LIKE :searchWord) OR p.description LIKE :searchWord)" +
-            "ORDER BY CASE WHEN p.productName LIKE :searchWord THEN 1 ELSE 2 END, p.productName")
-    List<ProductDto> getProductList(@Param("searchWord") String searchWord, Pageable pageable);
+//    @Query("SELECT NEW com.supercoding.commerce03.web.dto.product.ProductDto(" +
+//            "p.id, p.imageUrl, p.animalCategory, p.productCategory, p.productName, " +
+//            "p.modelNum, p.originLabel, p.price, p.description, p.stock, p.wishCount, p.purchaseCount, p.createdAt, p.store) " +
+//            "FROM Product p " +
+//            "WHERE p.productName LIKE :searchWord OR p.description LIKE :searchWord " +
+//            "ORDER BY p.productName LIKE :searchWord DESC")
+    @Query(value="SELECT p.product_id, p.image_url, p.animal_category, p.product_category, p.product_name, " +
+            "p.model_num, p.origin_label, p.price, p.description, p.stock, p.wish_count, p.purchase_count, p.created_at, s.store_name " +
+            "FROM products p LEFT JOIN stores s on p.store_id = s.store_id " +
+            "WHERE p.product_name LIKE :searchWord OR p.description LIKE :searchWord " +
+            "ORDER BY p.product_name LIKE :searchWord DESC",
+            nativeQuery = true)
+    List<Object[]> getProductList(@Param("searchWord") String searchWord, Pageable pageable);
 
     /**
      * 상품 리스트 페이지 상세검색
@@ -60,14 +66,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "FROM Product p " +
             "WHERE p.animalCategory = :animalCategory " +
             "AND p.productCategory = :productCategory " +
-            "AND (:searchWord IS NULL OR p.productName LIKE %:searchWord% OR p.description LIKE %:searchWord%) " +
+            "AND (:searchWord IS NULL OR p.productName LIKE :keyWord OR p.description LIKE :keyWord) " +
             "ORDER BY CASE " +
             "   WHEN :sortBy = 'wishCount' THEN p.wishCount " +
             "   WHEN :sortBy = 'createdAt' THEN p.createdAt " +
             "   ELSE p.price END")
     List<ProductDto> getProductsWithFilters(
             Integer animalCategory, Integer productCategory,
-            String searchWord, String sortBy, Pageable pageable);
+            String searchWord, String keyWord, String sortBy, Pageable pageable);
 
     /**
      * 인기상품 TOP10 //JPQL이 LIMIT 쿼리를 지원하지 않아, JPA 메서드로 작성

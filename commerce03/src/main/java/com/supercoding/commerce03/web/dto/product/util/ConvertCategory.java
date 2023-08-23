@@ -50,9 +50,9 @@ public class ConvertCategory {
 
     public Integer[] assignProductCategoryList(String animalCategory){
         switch(animalCategory){
-            case "dog": return new Integer[]{1,2,3,4,5,6,7};
-            case "cat": return new Integer[]{1,2,3,4,5,6,7};
-            case "small": return new Integer[]{1,2,3,4};
+            case "dog": return new Integer[]{1,2,3,4,5,6};
+            case "cat": return new Integer[]{1,2,3,4,5,6};
+            case "small": return new Integer[]{1,2,3};
             default : return new Integer[]{1,2,3,4};
         }
     }

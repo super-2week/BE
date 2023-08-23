@@ -40,7 +40,6 @@ public class SearchWishList {
     }
 
 
-
     public List<ProductDto> setIsLikedForDto(List<ProductDto> products){
         //List<Long> targetList = products.stream().map(e -> e.getId()).collect(Collectors.toList());
         List<Long> wishedList = getProductIdsFromWishList();
