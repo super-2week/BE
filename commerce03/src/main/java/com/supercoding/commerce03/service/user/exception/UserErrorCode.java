@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum UserErrorCode {
     //status(HttpStatus.badRequest) 400
     INVALID_SIGNUP_FILED("기입한 정보를 다시 확인해주세요.", HttpStatus.BAD_REQUEST),
+    CANT_ACCESS("접근할 수 없습니다",HttpStatus.BAD_REQUEST),
     EMAIL_DUPLICATION( "이미 등록된 이메일입니다.",HttpStatus.BAD_REQUEST),
     INVALID_PHONE_NUMBER_PATTERN("비밀번호는 특수문자를 1개이상 포함해야 합니다.",HttpStatus.BAD_REQUEST),
     INVALID_PHONE_NUMBER("비밀번호는 8자리 이상이여야 합니다.",HttpStatus.BAD_REQUEST),
@@ -16,10 +17,17 @@ public enum UserErrorCode {
     MISMATCH_PASSWORD("비밀번호를 똑같이 입력 해주세요.",HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD("올바르지 않은 비밀번호 양식 입니다.",HttpStatus.BAD_REQUEST),
     INVALID_LOGIN_INPUT("해당 회원은 없습니다 다시 한번 입력 해줏세요 ",HttpStatus.BAD_REQUEST),
+    EXPIRED_TOKEN("만료된 토큰입니다. 인증을 다시 받아주세요",HttpStatus.UNAUTHORIZED),
+
+    HANDLE_ACCESS_DENIED("로그인이 필요합니다",HttpStatus.FORBIDDEN),
+
     //status(HttpStatus.NOT_FOUND) 404
     USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND);
 
+
+
     private final String description;
     private final HttpStatus httpStatus;
+
 }
 

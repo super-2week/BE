@@ -19,6 +19,7 @@ import com.supercoding.commerce03.service.review.exception.ReviewException;
 import com.supercoding.commerce03.web.dto.review.CreateReview;
 import com.supercoding.commerce03.web.dto.review.ModifyReview.Request;
 import com.supercoding.commerce03.web.dto.review.ReviewDto;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -57,15 +58,13 @@ public class ReviewService {
 			throw new ReviewException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
 		}
 
-		Review review = toEntity(validatedUser, validatedProduct, request);
+		Review review = toEntity(validatedUser, validateUserDetail, validatedProduct, request);
 		reviewRepository.save(review);
 
 		List<String> imageUrls = s3Service.uploadFiles(multipartFile);
 		saveReviewImage(review, imageUrls);
 
-		ReviewDto reviewDto = ReviewDto.fromEntity(review);
-		reviewDto.setUserEmail(validateUserDetail.getEmail());
-		return reviewDto;
+		return ReviewDto.fromEntity(review);
 	}
 
 	@Transactional
@@ -74,7 +73,6 @@ public class ReviewService {
 		Long inputReviewId = request.getReviewId();
 
 		User validatedUser = validateUser(userId);
-		UserDetail validateUserDetail = validateUserDetail(userId);
 		Review validateReview = validateReview(inputReviewId);
 
 		if (isNotReviewer(validatedUser.getId(), validateReview)) {
@@ -88,9 +86,7 @@ public class ReviewService {
 		List<String> imageUrls = s3Service.uploadFiles(multipartFile);
 		saveReviewImage(validateReview, imageUrls);
 
-		ReviewDto reviewDto = ReviewDto.fromEntity(validateReview);
-		reviewDto.setUserEmail(validateUserDetail.getEmail());
-		return reviewDto;
+		return ReviewDto.fromEntity(validateReview);
 	}
 
 	@Transactional
@@ -106,10 +102,9 @@ public class ReviewService {
 
 		deleteReviewImage(validateReview);
 		validateReview.setIsDeleted(true);
+		validateReview.setDeleteAt(LocalDateTime.now());
 
-		ReviewDto reviewDto = ReviewDto.fromEntity(validateReview);
-		reviewDto.setUserEmail(validateUserDetail.getEmail());
-		return reviewDto;
+		return ReviewDto.fromEntity(validateReview);
 	}
 
 	public Page<ReviewDto> getReview(Long productId, Long cursor, Integer pageSize){
