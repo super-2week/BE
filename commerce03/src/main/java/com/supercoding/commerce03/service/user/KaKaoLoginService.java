@@ -58,7 +58,7 @@ public class KaKaoLoginService {
             HttpHeaders header = new HttpHeaders();
             header.add("Authorization", "Bearer " + token);
 
-            return new ResponseEntity<>("기존 회원입니다 로그인 완료!", header, HttpStatus.CREATED);
+            return new ResponseEntity<>("기존 회원입니다 로그인 완료!", header, HttpStatus.OK);
         }
     }
 
