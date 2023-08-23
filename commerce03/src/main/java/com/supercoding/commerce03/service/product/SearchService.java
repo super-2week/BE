@@ -86,8 +86,8 @@ public class SearchService {
             for (int i = 0; i < words.length; i++) {
 
                     if (words[i].equals(searchWord)) {  //예컨대 "강아지"가 겹치는 인덱스를 발견하면
-                        //int start = Math.max(i - 1, 0);  //인접한 단어들의 범위를 결정한다. 앞으로 한 단어, 뒤로 2단어
-                        int start = i; //앞으로는 안찾고, 뒤로만 두 단어
+                        int start = Math.max(i - 1, 0);  //인접한 단어들의 범위를 결정한다. 앞으로 한 단어, 뒤로 2단어
+                        //int start = i; //앞으로는 안찾고, 뒤로만 두 단어
                         int end = Math.min(i + 2, words.length - 1);
                         StringBuilder adjacentWordBuilder = new StringBuilder();
 

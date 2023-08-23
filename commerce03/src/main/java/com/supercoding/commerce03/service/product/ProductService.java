@@ -37,6 +37,7 @@ public class ProductService {
     private final ConvertCategory convertCategory;
     private final SearchWishList searchWishList;
 
+
     public ProductService(ProductRepository productRepository, WishRepository wishRepository, UserRepository userRepository, ConvertCategory convertCategory, SearchWishList searchWishList) {
         this.productRepository = productRepository;
         this.wishRepository = wishRepository;
@@ -52,6 +53,8 @@ public class ProductService {
         JSONObject resultObject = new JSONObject();
         JSONArray resultArray = new JSONArray();
         List resultList = null;
+        String[] searchWords = searchWord.split("\\+");
+        Optional<String> secondSearchWord = Optional.ofNullable(searchWords.length > 1 ? searchWords[1] : null);
 
         //첫페이지 32개, 다음 페이지 12개
         if(pageNumber == 1){
@@ -62,7 +65,9 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
         List<Object[]> rawResult = productRepository.getProductList(
-                "%"+searchWord+"%", pageable
+                "%"+ searchWords[0] +"%",
+                secondSearchWord.map(word -> "%" + word + "%").orElse(null),
+                pageable
         );
         List<ProductDto> products = rawResult.stream()
                 .map(productData -> {
@@ -119,7 +124,9 @@ public class ProductService {
         resultObject.put("products", resultList);
         if(pageNumber==1) {
             //첫페이지 에서만 상품의 totalLength(총 개수) 반환
-            totalLength = productRepository.getCount("%"+searchWord+"%");
+            totalLength = productRepository.getCount(
+                    "%"+searchWords[0]+"%",
+                    secondSearchWord.map(word -> "%" + word + "%").orElse(null));
             resultObject.put("totalLength", totalLength);
         }
         return resultArray.put(resultObject).toString();
@@ -136,8 +143,9 @@ public class ProductService {
         JSONObject resultObject = new JSONObject();
         JSONArray resultArray = new JSONArray();
         List resultList = null;
+        String[] searchWords = searchWord.split("\\+");
+        Optional<String> secondSearchWord = Optional.ofNullable(searchWords.length > 1 ? searchWords[1] : null);
 
-        //첫페이지 32개, 다음 페이지 12개
         if(pageNumber == 1){
             pageSize = 32;
         }else {
@@ -146,7 +154,13 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
         List<ProductDto> products = productRepository.getProductsWithFilters(
-                animalCategory, productCategory, searchWord, "%"+searchWord+"%", sortBy, pageable
+                animalCategory,
+                productCategory,
+                searchWord,
+                "%"+searchWords[0]+"%",
+                secondSearchWord.map(word -> "%" + word + "%").orElse(null),
+                sortBy,
+                pageable
         );
 
         List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
@@ -167,12 +181,16 @@ public class ProductService {
             resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
         } else {
             // 기본 정렬 기준 (가격순)
-            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getPrice)).collect(Collectors.toList());
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getPrice)).collect(Collectors.toList());
         }
         resultObject.put("products", resultList);
         if(pageNumber==1) {
             //첫페이지 에서만 상품의 totalLength(총 개수) 반환
-            totalLength = productRepository.getCountWithFilter(animalCategory, productCategory, searchWord);
+            totalLength = productRepository.getCountWithFilter(
+                    animalCategory,
+                    productCategory,
+                    "%"+searchWords[0]+"%",
+                    secondSearchWord.map(word -> "%" + word + "%").orElse(null));
             resultObject.put("totalLength", totalLength);
         }
         return resultArray.put(resultObject).toString();

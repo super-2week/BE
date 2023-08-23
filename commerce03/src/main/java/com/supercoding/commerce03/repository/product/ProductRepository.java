@@ -33,7 +33,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /**
      * 상품 리스트 페이지 전체검색
-     * @param searchWord
+     * @param
      * @param pageable
      * @return
      */
@@ -46,10 +46,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value="SELECT p.product_id, p.image_url, p.animal_category, p.product_category, p.product_name, " +
             "p.model_num, p.origin_label, p.price, p.description, p.stock, p.wish_count, p.purchase_count, p.created_at, s.store_name " +
             "FROM products p LEFT JOIN stores s on p.store_id = s.store_id " +
-            "WHERE p.product_name LIKE :searchWord OR p.description LIKE :searchWord " +
-            "ORDER BY p.product_name LIKE :searchWord DESC",
+            "WHERE ((p.product_name LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
+            "AND (:searchTokenTwo IS NULL OR p.product_name LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo))" +
+            "ORDER BY p.product_name LIKE :searchTokenOne DESC",
             nativeQuery = true)
-    List<Object[]> getProductList(@Param("searchWord") String searchWord, Pageable pageable);
+    List<Object[]> getProductList(@Param("searchTokenOne") String searchTokenOne,
+                                  @Param("searchTokenTwo") String searchTokenTwo,
+                                  Pageable pageable);
 
     /**
      * 상품 리스트 페이지 상세검색
@@ -66,14 +69,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "FROM Product p " +
             "WHERE p.animalCategory = :animalCategory " +
             "AND p.productCategory = :productCategory " +
-            "AND (:searchWord IS NULL OR p.productName LIKE :keyWord OR p.description LIKE :keyWord) " +
+            "AND ((:searchWord IS NULL OR p.productName LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
+            "AND (:searchTokenTwo IS NULL OR p.productName LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo))" +
             "ORDER BY CASE " +
             "   WHEN :sortBy = 'wishCount' THEN p.wishCount " +
             "   WHEN :sortBy = 'createdAt' THEN p.createdAt " +
             "   ELSE p.price END")
     List<ProductDto> getProductsWithFilters(
-            Integer animalCategory, Integer productCategory,
-            String searchWord, String keyWord, String sortBy, Pageable pageable);
+            @Param("animalCategory") Integer animalCategory,
+            @Param("productCategory")Integer productCategory,
+            @Param("searchWord")String searchWord,
+            @Param("searchTokenOne")String searchTokenOne,
+            @Param("searchTokenTwo")String searchTokenTwo,
+            @Param("sortBy")String sortBy,
+            @Param("pageable")Pageable pageable);
 
     /**
      * 인기상품 TOP10 //JPQL이 LIMIT 쿼리를 지원하지 않아, JPA 메서드로 작성
@@ -118,24 +127,28 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query(
             value= "SELECT COUNT(*) FROM products p " +
-                    "WHERE (p.product_name LIKE :searchWord OR p.description LIKE :searchWord)",
+                    "WHERE ((p.product_name LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
+                    "AND (:searchTokenTwo IS NULL OR p.product_name LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo))",
             nativeQuery = true
     )
     Integer getCount(
-            @Param("searchWord") String searchWord
+            @Param("searchTokenOne") String searchTokenOne,
+            @Param("searchTokenTwo") String searchTokenTwo
     );
 
     @Query(
             value= "SELECT COUNT(*) FROM products p " +
                     "WHERE p.animal_category = :animalCategory " +
                     "AND p.product_category = :productCategory " +
-                    "AND (:searchWord IS NULL OR (:searchWord IS NOT NULL AND (p.product_name LIKE %:searchWord% OR p.description LIKE %:searchWord%)))",
+                    "AND ((:searchTokenOne IS NULL OR (p.product_name LIKE :searchTokenOne OR p.description LIKE :searchTokenOne))" +
+                    "AND :searchTokenTwo IS NULL OR (p.product_name LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo))",
             nativeQuery = true
     )
     Integer getCountWithFilter(
             @Param("animalCategory") Integer animalCategory,
             @Param("productCategory") Integer productCategory,
-            @Param("searchWord") String searchWord
+            @Param("searchTokenOne") String searchTokenOne,
+            @Param("searchTokenTwo") String searchTokenTwo
     );
 
 }
