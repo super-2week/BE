@@ -34,7 +34,7 @@ public class ProductResponseDto {
 
 
     public static ProductResponseDto fromEntity(ProductDto productDto){
-        Store store = productDto.getStore();
+//        Store store = productDto.getStore();
         String animalCategory = AnimalCategory.getByCode(productDto.getAnimalCategory());
         String productCategory = productDto.getAnimalCategory() == 3 ?
                 SmallCategory.getByCode(productDto.getProductCategory()):
@@ -45,7 +45,7 @@ public class ProductResponseDto {
                 .animalCategory(animalCategory)
                 .productCategory(productCategory)
                 .productName(productDto.getProductName())
-                .storeName(store.getStoreName())
+                .storeName(productDto.getStoreName())
                 .price(productDto.getPrice())
                 .imageUrl(productDto.getImageUrl())
                 .modelNum(productDto.getModelNum())

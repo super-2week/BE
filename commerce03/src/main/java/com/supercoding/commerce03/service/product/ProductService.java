@@ -20,6 +20,10 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,9 +61,47 @@ public class ProductService {
         }
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
-        List<ProductDto> products = productRepository.getProductList(
+        List<Object[]> rawResult = productRepository.getProductList(
                 "%"+searchWord+"%", pageable
         );
+        List<ProductDto> products = rawResult.stream()
+                .map(productData -> {
+                    BigInteger bigIntegerId = (BigInteger) productData[0];
+                    Long id = bigIntegerId.longValue();
+                    String imageUrl = (String) productData[1];
+                    Integer animalCategory = (Integer) productData[2];
+                    Integer productCategory = (Integer) productData[3];
+                    String productName = (String) productData[4];
+                    String modelNum = (String) productData[5];
+                    String originLabel = (String) productData[6];
+                    Integer price = (Integer) productData[7];
+                    String description = (String) productData[8];
+                    Integer stock = (Integer) productData[9];
+                    Integer wishCount = (Integer) productData[10];
+                    Integer purchaseCount = (Integer) productData[11];
+                    Timestamp timestamp = (Timestamp) productData[12];
+                    LocalDateTime createdAt = timestamp.toLocalDateTime();
+                    String storeName = (String) productData[13];
+
+                    return ProductDto.builder()
+                            .id(id)
+                            .imageUrl(imageUrl)
+                            .animalCategory(animalCategory)
+                            .productCategory(productCategory)
+                            .productName(productName)
+                            .modelNum(modelNum)
+                            .originLabel(originLabel)
+                            .price(price)
+                            .description(description)
+                            .stock(stock)
+                            .wishCount(wishCount)
+                            .purchaseCount(purchaseCount)
+                            .createdAt(createdAt)
+                            .storeName(storeName)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
         List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
         resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).collect(Collectors.toList());
 //        if ("wishCount".equals(sortBy)) {
@@ -104,7 +146,7 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
         List<ProductDto> products = productRepository.getProductsWithFilters(
-                animalCategory, productCategory, searchWord, sortBy, pageable
+                animalCategory, productCategory, searchWord, "%"+searchWord+"%", sortBy, pageable
         );
 
         List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
@@ -131,7 +173,6 @@ public class ProductService {
         if(pageNumber==1) {
             //첫페이지 에서만 상품의 totalLength(총 개수) 반환
             totalLength = productRepository.getCountWithFilter(animalCategory, productCategory, searchWord);
-            System.out.println("3333333333333"+totalLength);
             resultObject.put("totalLength", totalLength);
         }
         return resultArray.put(resultObject).toString();

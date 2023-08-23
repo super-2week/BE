@@ -5,8 +5,8 @@ import com.supercoding.commerce03.service.security.Auth;
 import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.web.dto.payment.Charge;
 
+import com.supercoding.commerce03.web.dto.payment.TotalCoin;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,19 +26,9 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.chargeByCoin(userId,request));
     }
 
-//    @Auth
-//    @GetMapping
-//    public ResponseEntity<?> totalCoinList(Pageable pageable) {
-//        Long userId = AuthHolder.getUserId();
-//
-//        Page<TotalCoin.Response> totalPayCoinList = paymentService.totalCoinList(userId, pageable)
-//
-//        return ResponseEntity.ok(totalPayCoinList);
-//    }
-
     @Auth
     @GetMapping
-    public ResponseEntity<Page<Charge.Response>> findByPaymentId(Pageable pageable) {
+    public ResponseEntity<TotalCoin.Response> findByPaymentId(Pageable pageable) {
         Long userId = AuthHolder.getUserId();
 
         return ResponseEntity.ok(paymentService.findByPaymentId(userId, pageable));
