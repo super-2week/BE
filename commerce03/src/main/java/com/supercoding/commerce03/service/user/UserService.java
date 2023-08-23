@@ -35,6 +35,7 @@ public class UserService {
     private final S3Service s3Service;
 
 
+    @Transactional
     public String signUp(SignUp signUp) {
         //비지니스 로직(들어오는것들을 검증하는 부분)
 
@@ -55,6 +56,7 @@ public class UserService {
             return "사용가능한 이메일입니다";
     }
 
+    @Transactional
     public Login.Response login(Login.Request loginRequest) {
         Optional<UserDetail> optionalUserDetail = userDetailRepository.findByEmail(
             loginRequest.getEmail());
@@ -74,7 +76,6 @@ public class UserService {
             .Token(token)
             .build();
     }
-
     public User getLoginUser(Long userId) {
         if (userId == null) {
             throw new UserException(UserErrorCode.INVALID_LOGIN_INPUT);
