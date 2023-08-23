@@ -3,12 +3,14 @@ package com.supercoding.commerce03.web.controller.user;
 import com.supercoding.commerce03.service.security.Auth;
 import com.supercoding.commerce03.service.security.AuthHolder;
 import com.supercoding.commerce03.service.user.UserService;
+import com.supercoding.commerce03.web.dto.user.EmailConfirm;
 import com.supercoding.commerce03.web.dto.user.Login;
 import com.supercoding.commerce03.web.dto.user.SignUp;
 import com.supercoding.commerce03.web.dto.user.UpdateProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,12 +31,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<Object> signUp(@RequestBody SignUp signUp) {
+    public ResponseEntity<Object> signUp(@Validated @RequestBody SignUp signUp) {
         return ResponseEntity.ok(userService.signUp(signUp));
     }
+
     @PostMapping("/emailConfirm")
-    public ResponseEntity<Object> emailCheck(@RequestParam String email) {
-        String message = userService.emailDuplicate(email);
+    public ResponseEntity<Object> emailCheck(@RequestBody EmailConfirm emailConfirm) {
+        String message = userService.emailDuplicate(emailConfirm);
         return ResponseEntity.ok(message);
     }
 
@@ -61,7 +64,7 @@ public class UserController {
 
     @Auth
     @PatchMapping
-    public ResponseEntity<Object>updateProfile(@RequestPart UpdateProfile updateProfile
+    public ResponseEntity<Object>updateProfile(@Validated @RequestPart UpdateProfile updateProfile
         ,@RequestPart MultipartFile multipartFile){
 
         Long userId = AuthHolder.getUserId();

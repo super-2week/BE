@@ -54,8 +54,8 @@ public class OrderService {
                 .map(product -> product.getPrice() * product.getAmount())
                 .mapToInt(Integer::intValue).sum();
 
-        // orderRegisterRequest -> order entity 생성
-        Order order = Order.builder()
+        // orderRegisterRequest -> order entity 생성 및 저장
+        Order order = orderRepository.save(Order.builder()
                 .orderedAt(LocalDateTime.now())
                 .status("주문 중")
                 .address(orderRegisterRequest.getAddress())
@@ -66,26 +66,26 @@ public class OrderService {
                 .createdAt(LocalDateTime.now())
                 .postComment(orderRegisterRequest.getPostComment())
                 .user(user)
-                .build();
+                .build());
 
-        // order 테이블에 주문 정보 저장.
-        orderRepository.save(order);
 
         // 상품들  -> orderDetails 생성 및 테이블에 저장
-        List<OrderDetail> orderDetails = orderRegisterRequest.getProducts().stream().map(product->orderDetailRepository.save(
-                OrderDetail.builder()
-                        .amount(product.getAmount())
-                        .order(order)
-                        .price(product.getPrice())
-                        .isDeleted(false)
-                        .product(validProduct(product.getId()))
-                        .build()
-        )).collect(Collectors.toList());
+        List<OrderDetail> orderDetails = orderRegisterRequest.getProducts().stream()
+                .map(product -> orderDetailRepository.save(
+                                OrderDetail.builder()
+                                        .amount(product.getAmount())
+                                        .order(order)
+                                        .price(product.getPrice())
+                                        .isDeleted(false)
+                                        .product(validProduct(product.getId()))
+                                        .build()
+                        )
+                ).collect(Collectors.toList());
 
         order.setStatus("결제 대기");
 
 
-        // TODO : 저장 했다면 ? -> 결제 service 의 금액 차감(결제 로직)
+        // 저장 했다면 ? -> 결제 service 의 금액 차감(결제 로직)
 //        금액 차감할 때, 금액 부족한 경우, => Exception // new OrderException(OrderErrorCode.LACK_OF_POINT));
         paymentService.orderByBusiness(userId, totalAmount);
 
@@ -149,7 +149,6 @@ public class OrderService {
             productChangingAmount.setPurchaseCount(purchaseCountToChange);
             productRepository.save(productChangingAmount);
             order.setStatus("결제 완료");
-            log.info("stock : " + productChangingAmount.getStock());
         });
         order.setStatusAndTimeNow("주문 취소");
 
@@ -274,10 +273,9 @@ public class OrderService {
                 productRepository.save(productChangingAmount);
                 order.setStatus("결제 완료");
                 inMemorySpinLock.releaseLock(orderDetail.getProduct().getId());
-                log.info("stock : " + productChangingAmount.getStock());
             } else {
 
-                //TODO : 결제 취소 로직 추가
+                // 결제 취소 로직
                 paymentService.cancelByBusiness(userId, totalAmount);
                 throw new OrderException(OrderErrorCode.OUT_OF_STOCK);
             }
@@ -291,6 +289,7 @@ public class OrderService {
     public static class InMemorySpinLock {
 
         private final ConcurrentHashMap<Long, Lock> stockLockMap = new ConcurrentHashMap<>();
+
         public String acquireLock(Long resourceKey) {
             Lock lock = stockLockMap.computeIfAbsent(resourceKey, key -> new ReentrantLock());
             while (true) {
