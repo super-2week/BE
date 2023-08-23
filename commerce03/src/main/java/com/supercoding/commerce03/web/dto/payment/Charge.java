@@ -41,7 +41,6 @@ public class Charge {
                     .build();
         }
 
-
         public static Charge.Response from(PaymentDetail paymentDetail) {
             return Response.builder()
                     .businessType(paymentDetail.getBusinessType().getKey())
