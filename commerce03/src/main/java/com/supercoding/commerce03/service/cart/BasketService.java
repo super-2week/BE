@@ -114,11 +114,9 @@ public class BasketService {
 
 		redisTemplate.executePipelined((RedisCallback<Object>) RedisConnection -> {
 			itemList.forEach(item -> {
-				String Key = item.getProductId().toString();
 				String Value = valueSerializer.serialize(item).toString();
 
-				RedisConnection.hSet(keySerializer.serialize(key),
-						keySerializer.serialize(Key),
+				RedisConnection.lPush(keySerializer.serialize(key),
 						valueSerializer.serialize(Value)
 				);
 			});
@@ -192,5 +190,7 @@ public class BasketService {
 
 	private void run(Long userId, List<Item> itemList){
 		restoreBasketListOnOrderRollback(userId, itemList);
+		List<Item> items = basketDelete(userId);
+		System.out.println(items);
 	}
 }
