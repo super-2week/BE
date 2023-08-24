@@ -5,6 +5,7 @@ import com.supercoding.commerce03.repository.payment.entity.Payment;
 import com.supercoding.commerce03.repository.payment.entity.PaymentDetail;
 import lombok.*;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 
 public class Charge {
@@ -29,15 +30,15 @@ public class Charge {
 
         private String businessType;
         private LocalDateTime createdAt;
-        private Integer coin;
-        private Integer totalCoin;
+        private String coin;
+        private String totalCoin;
 
         public static Charge.Response from(Payment payment) {
             return Response.builder()
                     .businessType(payment.getBusinessType().getKey())
                     .createdAt(payment.getCreatedAt())
-                    .coin(payment.getCoin())
-                    .totalCoin(payment.getTotalCoin())
+                    .coin(formatter.format(payment.getCoin()))
+                    .totalCoin(formatter.format(payment.getTotalCoin()))
                     .build();
         }
 
@@ -45,10 +46,12 @@ public class Charge {
             return Response.builder()
                     .businessType(paymentDetail.getBusinessType().getKey())
                     .createdAt(paymentDetail.getCreatedAt())
-                    .coin(paymentDetail.getPayCoin())
-                    .totalCoin(paymentDetail.getTotalPayCoin())
+                    .coin(formatter.format(paymentDetail.getPayCoin()))
+                    .totalCoin(formatter.format(paymentDetail.getTotalPayCoin()))
                     .build();
         }
+
+        private static DecimalFormat formatter = new DecimalFormat("###,###");
     }
 }
 

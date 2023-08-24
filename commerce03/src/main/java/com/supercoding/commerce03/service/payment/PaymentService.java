@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,9 +59,9 @@ public class PaymentService {
         Payment validatedPayment = validatePayment(userId);
         Page<PaymentDetail> paymentDetails = paymentDetailRepository.findAllByPaymentId(validatedPayment.getId(), pageable);
         List<TotalCoin.Response.PaymentDetail> paymentDetailList = paymentDetails.stream().map(paymentDetail -> TotalCoin.Response.PaymentDetail.builder()
-                .totalCoin(paymentDetail.getTotalPayCoin())
+                .totalCoin(formatter.format(paymentDetail.getTotalPayCoin()))
                 .businessType(paymentDetail.getBusinessType().getKey())
-                .coin(paymentDetail.getPayCoin())
+                .coin(formatter.format(paymentDetail.getPayCoin()))
                 .createdAt(paymentDetail.getCreatedAt())
                 .build()).collect(Collectors.toList());
              return TotalCoin.Response.from(validatedPayment, paymentDetailList);
@@ -112,4 +113,5 @@ public class PaymentService {
         return paymentRepository.findByUserId(userId)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
+    private static DecimalFormat formatter = new DecimalFormat("###,###");
 }
