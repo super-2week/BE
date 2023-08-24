@@ -1,6 +1,8 @@
 package com.supercoding.commerce03.service.product;
 
+import com.supercoding.commerce03.client.RedisClient;
 import com.supercoding.commerce03.repository.product.ProductRepository;
+import com.supercoding.commerce03.repository.redis.Words;
 import com.supercoding.commerce03.web.dto.product.GetRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,20 +17,31 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class SearchService {
+    private final RedisClient redisClient;
     private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public List<String> searchFullText(GetRequestDto getRequestDto, String searchWord){
 
-        String keyWord = "%" + searchWord + "%";
+        Words redisWords = redisClient.getWords(searchWord, Words.class);
 
-        List<String> words = productRepository.fullTextSearch(keyWord)
-                .stream()
-                .map(result -> (String) result[0])
-                .collect(Collectors.toList());;
+        if(redisWords == null || redisWords.getWords().isEmpty() ) {
+            String keyWord = "%" + searchWord + "%";
+            List<Object[]> rawResults = productRepository.fullTextSearch(keyWord);
+            List<String> words = rawResults.stream()
+                    .map(result -> (String) result[0])
+                    .collect(Collectors.toList());
 
-        return generateRelatedSearchTermsByAdjacency(words, searchWord);
 
+            List<String> wordList = generateRelatedSearchTermsByAdjacency(words, searchWord);
+            Words wordsObject = new Words();
+            //wordsObject.setSearchWord(searchWord);
+            wordsObject.setWords(wordList);
+            redisClient.putWords(searchWord, wordsObject);
+            return wordList;
+        }else{
+            return redisWords.getWords();
+        }
     }
 
     /**

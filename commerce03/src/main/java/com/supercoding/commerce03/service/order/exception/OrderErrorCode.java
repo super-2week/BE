@@ -14,7 +14,7 @@ public enum OrderErrorCode {
     NO_PERMISSION_TO_VIEW("해당 유저는 해당 주문 내역을 조회할 권한이 없습니다.", HttpStatus.FORBIDDEN),
 
     ORDER_ALREADY_CANCELED("해당 주문은 이미 취소 처리 되었습니다.",HttpStatus.BAD_REQUEST),
-    ORDER_ALREADY_DELELED("해당 주문 내역은 이미 삭제되었습니다.",HttpStatus.BAD_REQUEST),
+    ORDER_ALREADY_DELETED("해당 주문 내역은 이미 삭제되었습니다.",HttpStatus.BAD_REQUEST),
 
     USER_NOT_FOUND("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND),
     PRODUCT_NOT_FOUND("주문한 상품이 존재하지 않습니다.", HttpStatus.NOT_FOUND),

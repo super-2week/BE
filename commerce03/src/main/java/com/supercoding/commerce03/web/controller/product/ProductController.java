@@ -99,18 +99,26 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    /**
+     * 상품전체검색
+     * @param searchWord
+     * @param page
+     * @return
+     */
     @CrossOrigin(origins = "*")
-    @GetMapping("v1/api/total")
+    @GetMapping("v1/api/total/{sortBy}")
     public ResponseEntity<String> getProducts(
+            @PathVariable(required = false) String sortBy,
             @RequestParam(required = false) String searchWord,
             @RequestParam(required = false) Integer page
     ){
-
+        GetRequestDto getRequestDto = new GetRequestDto(null, null, sortBy);
+        log.info("sortBy:" + getRequestDto.getSortBy());
         log.info("searchWord: " + searchWord);
         log.info("page: " + page);
         int pageNumber = (page != null) ? page : 1; // null이면 기본값 1
 
-        String resultList = productService.getProductList(searchWord, pageNumber);
+        String resultList = productService.getProductList(getRequestDto.getSortBy(), searchWord, pageNumber);
         return ResponseEntity.ok(resultList);
     }
 

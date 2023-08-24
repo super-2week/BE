@@ -47,7 +47,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public String getProductList(String searchWord, int pageNumber) {
+    public String getProductList(String sortBy, String searchWord, int pageNumber) {
         int pageSize;
         int totalLength = 0;
         JSONObject resultObject = new JSONObject();
@@ -66,6 +66,7 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize); // pageNumber는 1부터 시작
         List<Object[]> rawResult = productRepository.getProductList(
+                sortBy,
                 firstSearchWord.map(word -> "%" + word + "%").orElse(null),
                 secondSearchWord.map(word -> "%" + word + "%").orElse(null),
                 pageable
@@ -110,17 +111,17 @@ public class ProductService {
 
         List<ProductDto> checkedProducts = searchWishList.setIsLiked(products);
         resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).collect(Collectors.toList());
-//        if ("wishCount".equals(sortBy)) {
-//            //인기순
-//            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getWishCount).reversed()).collect(Collectors.toList());
-//
-//        } else if ("createdAt".equals(sortBy)) {
-//            //최신순
-//            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
-//        } else {
-//            // 기본 정렬 기준 (가격순)
-//            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getPrice)).collect(Collectors.toList());
-//        }
+        if ("wishCount".equals(sortBy)) {
+            //인기순
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparingInt(ProductResponseDto::getWishCount).reversed()).collect(Collectors.toList());
+
+        } else if ("createdAt".equals(sortBy)) {
+            //최신순
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
+        } else {
+            // 기본 정렬 기준 (가격순)
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(dto -> dto.parseFormattedPrice(dto.getPrice()))).collect(Collectors.toList());
+        }
 
         resultObject.put("products", resultList);
         if(pageNumber==1) {
@@ -182,7 +183,8 @@ public class ProductService {
             resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
         } else {
             // 기본 정렬 기준 (가격순)
-            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getPrice)).collect(Collectors.toList());
+
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(dto -> dto.parseFormattedPrice(dto.getPrice()))).collect(Collectors.toList());
         }
         resultObject.put("products", resultList);
         if(pageNumber==1) {

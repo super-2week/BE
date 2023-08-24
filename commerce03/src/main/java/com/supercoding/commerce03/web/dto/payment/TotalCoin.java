@@ -3,6 +3,7 @@ package com.supercoding.commerce03.web.dto.payment;
 import com.supercoding.commerce03.repository.payment.entity.Payment;
 import lombok.*;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,12 +16,12 @@ public class TotalCoin {
     @Builder
     public static class Response {
 
-        private Integer totalPayCoin;
+        private String totalPayCoin;
         private List<TotalCoin.Response.PaymentDetail> paymentDetails;
 
         public static TotalCoin.Response from(Payment payment, List<TotalCoin.Response.PaymentDetail> paymentDetails) {
             return TotalCoin.Response.builder()
-                    .totalPayCoin(payment.getTotalCoin())
+                    .totalPayCoin(formatter.format(payment.getTotalCoin()))
                     .paymentDetails(paymentDetails)
                     .build();
         }
@@ -33,9 +34,11 @@ public class TotalCoin {
         public static class PaymentDetail{
             private String businessType;
             private LocalDateTime createdAt;
-            private Integer coin;
-            private Integer totalCoin;
+            private String coin;
+            private String totalCoin;
         }
+
+        private static DecimalFormat formatter = new DecimalFormat("###,###");
     }
 }
 
