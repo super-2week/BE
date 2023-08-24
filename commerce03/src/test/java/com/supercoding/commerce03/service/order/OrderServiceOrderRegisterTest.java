@@ -32,8 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @Slf4j
@@ -61,14 +62,13 @@ class OrderServiceOrderRegisterTest {
 
 
     @Test
-    @DisplayName("주문하기")
+    @DisplayName("주문하기 - 성공")
     void orderRegisterSuccess() {
         //given
         Long userId = 1L;
 
         User user = User.builder()
                 .userName("user1")
-                .isDeleted(false)
                 .isDeleted(false)
                 .build();
         user.setId(userId);
@@ -158,6 +158,8 @@ class OrderServiceOrderRegisterTest {
                 .id(2L)
                 .build();
 
+        //when
+
         when(productRepository.findById(1L)).thenReturn(Optional.of(product1));
         when(productRepository.findById(2L)).thenReturn(Optional.of(product2));
 
@@ -175,7 +177,7 @@ class OrderServiceOrderRegisterTest {
         });
 
 
-        //when
+
         OrderDto.OrderResponse orderResponse = orderService.orderRegister(userId, orderRegisterRequest);
 
 
@@ -188,10 +190,12 @@ class OrderServiceOrderRegisterTest {
         assertThat(orderResponse.getOrderedProducts().get(1).getId()).isEqualTo(2);
         assertThat(orderResponse.getOrderedProducts().get(1).getPrice()).isEqualTo("20,000");
 
+        verify(paymentService, times(1)).orderByBusiness(eq(userId), eq(order.getTotalAmount()));
+
     }
 
     @Test
-    @DisplayName("주문하기 - 유저 없음: 주문 실패 ")
+    @DisplayName("주문하기 - 실패 : 유저 없음 ")
     void orderRegisterFailedUserNotFound() {
         //given
         Long userId = 1L;
@@ -211,11 +215,12 @@ class OrderServiceOrderRegisterTest {
 
         //then
         assertEquals(OrderErrorCode.USER_NOT_FOUND,exception.getErrorCode());
+        verify(paymentService,never()).orderByBusiness(any(), any());
 
     }
 
     @Test
-    @DisplayName("주문하기 - 상품 없음: 주문 실패 ")
+    @DisplayName("주문하기 - 실패 : 상품 없음 ")
     void orderRegisterFailedProductNotFound() {
         //given
         Long userId = 1L;
@@ -282,10 +287,11 @@ class OrderServiceOrderRegisterTest {
 
         //then
         assertEquals(OrderErrorCode.PRODUCT_NOT_FOUND,exception.getErrorCode());
+        verify(paymentService,never()).orderByBusiness(any(), any());
 
     }
     @Test
-    @DisplayName("주문하기 - 재고 없음: 주문 실패 ")
+    @DisplayName("주문하기 - 실패 : 재고 없음 ")
     void orderRegisterFailedOutOfStock() {
         //given
         Long userId = 1L;
@@ -400,6 +406,7 @@ class OrderServiceOrderRegisterTest {
 
         //then
         assertEquals(OrderErrorCode.OUT_OF_STOCK,exception.getErrorCode());
+        verify(paymentService, times(1)).orderByBusiness(eq(userId), eq(order.getTotalAmount()));
 
     }
 
