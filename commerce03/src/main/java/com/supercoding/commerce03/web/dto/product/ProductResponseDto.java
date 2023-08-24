@@ -1,7 +1,5 @@
 package com.supercoding.commerce03.web.dto.product;
 
-import com.supercoding.commerce03.repository.product.entity.Product;
-import com.supercoding.commerce03.repository.store.entity.Store;
 import com.supercoding.commerce03.web.dto.product.util.AnimalCategory;
 import com.supercoding.commerce03.web.dto.product.util.ProductCategory;
 import com.supercoding.commerce03.web.dto.product.util.SmallCategory;
@@ -9,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,7 +22,7 @@ public class ProductResponseDto {
     private String productName;
     private String modelNum;
     private String originLabel;
-    private Integer price;
+    private String price;
     private String description;
     private Integer stock;
     private Integer wishCount;
@@ -34,7 +33,7 @@ public class ProductResponseDto {
 
 
     public static ProductResponseDto fromEntity(ProductDto productDto){
-//        Store store = productDto.getStore();
+        DecimalFormat df = new DecimalFormat("###,###");
         String animalCategory = AnimalCategory.getByCode(productDto.getAnimalCategory());
         String productCategory = productDto.getAnimalCategory() == 3 ?
                 SmallCategory.getByCode(productDto.getProductCategory()):
@@ -46,11 +45,10 @@ public class ProductResponseDto {
                 .productCategory(productCategory)
                 .productName(productDto.getProductName())
                 .storeName(productDto.getStoreName())
-                .price(productDto.getPrice())
                 .imageUrl(productDto.getImageUrl())
                 .modelNum(productDto.getModelNum())
                 .originLabel(productDto.getOriginLabel())
-                .price(productDto.getPrice())
+                .price(df.format(productDto.getPrice()))
                 .description(productDto.getDescription())
                 .stock(productDto.getStock())
                 .wishCount(productDto.getWishCount())
@@ -60,13 +58,6 @@ public class ProductResponseDto {
                 .build();
     }
 
-    public static ProductResponseDto fromSearch(Product product){
-        return ProductResponseDto.builder()
-                .id(product.getId())
-                .productName(product.getProductName())
-                .description(product.getDescription())
-                .build();
-    }
 }
 
 
