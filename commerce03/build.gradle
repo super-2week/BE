@@ -53,6 +53,9 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 
+    //redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
 }
 
