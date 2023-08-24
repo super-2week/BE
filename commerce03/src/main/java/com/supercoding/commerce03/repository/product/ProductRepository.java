@@ -69,7 +69,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "FROM Product p " +
             "WHERE p.animalCategory = :animalCategory " +
             "AND p.productCategory = :productCategory " +
-            "AND ((:searchWord IS NULL OR p.productName LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
+            "AND ((:searchTokenOne IS NULL OR p.productName LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
             "AND (:searchTokenTwo IS NULL OR p.productName LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo))" +
             "ORDER BY CASE " +
             "   WHEN :sortBy = 'wishCount' THEN p.wishCount " +
@@ -78,7 +78,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<ProductDto> getProductsWithFilters(
             @Param("animalCategory") Integer animalCategory,
             @Param("productCategory")Integer productCategory,
-            @Param("searchWord")String searchWord,
             @Param("searchTokenOne")String searchTokenOne,
             @Param("searchTokenTwo")String searchTokenTwo,
             @Param("sortBy")String sortBy,
