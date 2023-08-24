@@ -156,10 +156,11 @@ public class ProductController {
 
         // 웹 애플리케이션에서는 인증되지 않은 사용자라도 익명 인증 객체를 가지고 있게 되며, 이를 통해 Spring Security가 사용자의 로그인 상태를 관리합니다.
         // 따라서 authentication != null은 항상 true가 될 것입니다.
-        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() instanceof AnonymousAuthenticationToken))
+        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() == "anonymousUser"))
             throw new ProductException(ProductErrorCode.INVALID_USER);
 
         long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
+        System.out.println(userId);
         List<GetWishListDto> wishList = productService.getWishList(userId);
         return ResponseEntity.ok(wishList);
     }
@@ -169,6 +170,7 @@ public class ProductController {
      * @param productId
      * @return
      */
+    @CrossOrigin(origins = "*")
     @PostMapping("v1/api/product/wish/{productId}")
     public ResponseEntity<ResponseMessageDto> addWishList(
             @PathVariable Integer productId
@@ -176,11 +178,11 @@ public class ProductController {
         //로그인이 필요합니다.
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() instanceof AnonymousAuthenticationToken))
+        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() == "anonymousUser"))
             throw new ProductException(ProductErrorCode.INVALID_USER);
 
         long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
-
+        System.out.println(userId);
         Wish wish = productService.addWishList(userId, (long)productId);
         return ResponseEntity.ok(new ResponseMessageDto("상품명: " + wish.getProduct().getProductName() + "이(가) 관심상품으로 등록되었습니다."));
     }
@@ -197,7 +199,7 @@ public class ProductController {
         //로그인이 필요합니다.
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() instanceof AnonymousAuthenticationToken))
+        if(authentication == null || !authentication.isAuthenticated() || (authentication.getPrincipal() == "anonymousUser"))
             throw new ProductException(ProductErrorCode.INVALID_USER);
 
         long userId = Long.parseLong(Objects.requireNonNull(authentication).getName());
