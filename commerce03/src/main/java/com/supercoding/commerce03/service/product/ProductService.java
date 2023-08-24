@@ -182,7 +182,8 @@ public class ProductService {
             resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getCreatedAt).reversed()).collect(Collectors.toList());
         } else {
             // 기본 정렬 기준 (가격순)
-            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(ProductResponseDto::getPrice)).collect(Collectors.toList());
+
+            resultList = checkedProducts.stream().map(ProductResponseDto::fromEntity).sorted(Comparator.comparing(dto -> dto.parseFormattedPrice(dto.getPrice()))).collect(Collectors.toList());
         }
         resultObject.put("products", resultList);
         if(pageNumber==1) {
