@@ -46,20 +46,26 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value="SELECT p.product_id, p.image_url, p.animal_category, p.product_category, p.product_name, " +
             "p.model_num, p.origin_label, p.price, p.description, p.stock, p.wish_count, p.purchase_count, p.created_at, s.store_name " +
             "FROM products p LEFT JOIN stores s on p.store_id = s.store_id " +
-            "WHERE ((p.product_name LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
-            "AND (:searchTokenTwo IS NULL OR p.product_name LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo))" +
-            "ORDER BY p.product_name LIKE :searchTokenOne DESC",
+            "WHERE (:searchTokenOne IS NULL OR p.product_name LIKE :searchTokenOne OR p.description LIKE :searchTokenOne) " +
+            "AND (:searchTokenTwo IS NULL OR p.product_name LIKE :searchTokenTwo OR p.description LIKE :searchTokenTwo) " +
+            "ORDER BY CASE " +
+            "   WHEN :sortBy = 'wishCount' THEN p.wish_count " +
+            "   WHEN :sortBy = 'createdAt' THEN p.created_at " +
+            "   ELSE p.price END",
             nativeQuery = true)
-    List<Object[]> getProductList(@Param("searchTokenOne") String searchTokenOne,
-                                  @Param("searchTokenTwo") String searchTokenTwo,
-                                  Pageable pageable);
+    List<Object[]> getProductList(
+            @Param("sortBy") String sortBy,
+            @Param("searchTokenOne") String searchTokenOne,
+            @Param("searchTokenTwo") String searchTokenTwo,
+            @Param("pageable") Pageable pageable
+    );
 
     /**
      * 상품 리스트 페이지 상세검색
      *
      * @param animalCategory
      * @param productCategory
-     * @param searchWord
+     * @param
      * @param sortBy
      * @return
      */
