@@ -13,7 +13,6 @@ import com.supercoding.commerce03.service.order.exception.OrderException;
 import com.supercoding.commerce03.service.payment.PaymentService;
 import com.supercoding.commerce03.web.dto.order.OrderDto;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -131,10 +130,6 @@ public class OrderService {
 
         if (order.getStatus().equals("주문 취소")) throw new OrderException(OrderErrorCode.ORDER_ALREADY_CANCELED);
 
-        // TODO : 결제 취소 로직
-        paymentService.cancelByBusiness(user.getId(), order.getTotalAmount());
-        order.setStatusAndTimeNow("결제 취소");
-
         // 주문 취소 ( 주문 테이블 주문 취소, 주문 상세 삭제)
         List<OrderDetail> orderDetailsToDeleted = orderDetailRepository.findOrderDetailsByOrder(order);
         orderDetailsToDeleted.stream().forEach((orderDetail) -> {
@@ -148,8 +143,11 @@ public class OrderService {
             productChangingAmount.setStock(stockToChange);
             productChangingAmount.setPurchaseCount(purchaseCountToChange);
             productRepository.save(productChangingAmount);
-            order.setStatus("결제 완료");
         });
+
+        // 결제 취소 로직
+        paymentService.cancelByBusiness(user.getId(), order.getTotalAmount());
+
         order.setStatusAndTimeNow("주문 취소");
 
 
@@ -191,7 +189,6 @@ public class OrderService {
         User user = validUser(userId);
         Order orderToDeleted = validOrder(Long.valueOf(orderId));
 
-        if (orderToDeleted.getIsDeleted() == true) throw new OrderException(OrderErrorCode.ORDER_ALREADY_DELELED);
         if (!user.equals(orderToDeleted.getUser())) {
             throw new OrderException(OrderErrorCode.NO_PERMISSION_TO_DELETE);
         }
@@ -204,8 +201,8 @@ public class OrderService {
     }
 
     public OrderDto.OrderResponse orderViewDetail(Long userId, String orderId) {
-        Order order = validOrder(Long.valueOf(orderId));
         User user = validUser(userId);
+        Order order = validOrder(Long.valueOf(orderId));
         if (!user.equals(order.getUser())) {
             throw new OrderException(OrderErrorCode.NO_PERMISSION_TO_VIEW);
         }
@@ -290,10 +287,10 @@ public class OrderService {
 
         private final ConcurrentHashMap<Long, Lock> stockLockMap = new ConcurrentHashMap<>();
 
-        public String acquireLock(Long resourceKey) {
+        public void acquireLock(Long resourceKey) {
             Lock lock = stockLockMap.computeIfAbsent(resourceKey, key -> new ReentrantLock());
             while (true) {
-                if (lock.tryLock()) return "Locked";
+                if (lock.tryLock()) return;
                 try {
                     TimeUnit.MICROSECONDS.sleep(100);
                 } catch (InterruptedException e) {
