@@ -15,12 +15,14 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
@@ -32,6 +34,10 @@ public class BasketService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final ProductRepository productRepository;
 	private final UserRepository userRepository;
+
+	public static String generateCartKey(Long userId){
+		return userId.toString();
+	}
 
 	public Basket getBasket(Long userId){
 		Basket basket = redisClient.get(userId, Basket.class);
@@ -120,16 +126,44 @@ public class BasketService {
 		});
 	}
 
-	public void restoreBasketListOnOrderRollback(Long userId, List<Item> itemList) {
+	public void restoreBasketListOnOrderRollback(Long userId, List<Item> itemList){
 		TransactionSynchronizationManager.registerSynchronization(
 				new TransactionSynchronization() {
 					@Override
-					public void afterCompletion(int status) {
+					public void afterCompletion(int status){
 						if (status == STATUS_ROLLED_BACK) {
 							insertItemList(userId, itemList);
 						}
 					}
 				});
+	}
+
+	public List<Item> basketDelete(Long userId){
+
+		String key = generateCartKey(userId);
+
+		List<Object> basketListObject = redisTemplate.execute(
+				new SessionCallback<List<Object>>() {
+					@Override
+					public List<Object> execute(RedisOperations redisOperations)
+							throws DataAccessException{
+						try {
+							redisOperations.watch(key);
+							redisOperations.multi();
+							redisOperations.opsForList().range(key, 0, -1);
+							redisOperations.delete(key);
+							return redisOperations.exec();
+						} catch (Exception exception) {
+							redisOperations.discard();
+							throw exception;
+						}
+
+					}
+				}
+		);
+		List<Item> items = (List<Item>) basketListObject.get(0);
+
+		return items;
 	}
 
 	private User validateUser(Long userId){
@@ -156,7 +190,7 @@ public class BasketService {
 		}
 	}
 
-	private void run(Long userId, List<Item> itemList) {
+	private void run(Long userId, List<Item> itemList){
 		restoreBasketListOnOrderRollback(userId, itemList);
 	}
 }
