@@ -58,6 +58,12 @@ public class ProductResponseDto {
                 .build();
     }
 
+    public double parseFormattedPrice(String formattedPrice) {
+        // Remove commas and parse the formatted price as a double
+        return Double.parseDouble(formattedPrice.replace(",", ""));
+    }
+
+
 }
 
 
