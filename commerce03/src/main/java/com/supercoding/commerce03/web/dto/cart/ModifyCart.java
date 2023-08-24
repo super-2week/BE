@@ -1,5 +1,6 @@
 package com.supercoding.commerce03.web.dto.cart;
 
+import java.text.DecimalFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class ModifyCart {
 		private Long productId;
 		private String productName;
 		private Integer quantity;
+		private String total;
 
 		public static Response from(CartDto cartDto){
 			return Response.builder()
@@ -39,8 +41,11 @@ public class ModifyCart {
 					.productId(cartDto.getProductId())
 					.productName(cartDto.getProductName())
 					.quantity(cartDto.getQuantity())
+					.total(formatter.format(cartDto.getTotal()))
 					.build();
 		}
+
+		private static DecimalFormat formatter = new DecimalFormat("###,###");
 	}
 
 }
