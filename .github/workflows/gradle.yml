@@ -54,5 +54,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           script: |
-            docker stop commerce && docker rm commerce && docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/commerce:latest
+            docker-compose down && docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/commerce:latest
             docker-compose up -d
