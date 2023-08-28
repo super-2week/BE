@@ -5,14 +5,25 @@ import com.supercoding.commerce03.repository.product.ProductRepository;
 import com.supercoding.commerce03.repository.product.entity.Product;
 import com.supercoding.commerce03.repository.redis.Basket;
 import com.supercoding.commerce03.repository.redis.Basket.Item;
+import com.supercoding.commerce03.repository.user.UserRepository;
+import com.supercoding.commerce03.repository.user.entity.User;
 import com.supercoding.commerce03.service.cart.exception.CartErrorCode;
 import com.supercoding.commerce03.service.cart.exception.CartException;
 import com.supercoding.commerce03.web.dto.cart.AddCart;
 import com.supercoding.commerce03.web.dto.cart.ModifyCart.Request;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @Slf4j
@@ -20,7 +31,13 @@ import org.springframework.stereotype.Service;
 public class BasketService {
 
 	private final RedisClient redisClient;
+	private final RedisTemplate<String, Object> redisTemplate;
 	private final ProductRepository productRepository;
+	private final UserRepository userRepository;
+
+	public static String generateCartKey(Long userId){
+		return userId.toString();
+	}
 
 	public Basket getBasket(Long userId){
 		Basket basket = redisClient.get(userId, Basket.class);
@@ -29,7 +46,12 @@ public class BasketService {
 
 	public Basket addBasket(Long userId, AddCart.Request request){
 
-		Product validatedProduct = validateProduct(request.getProductId());
+		Long inputProductId = request.getProductId();
+		Integer inputQuantity = request.getQuantity();
+
+		validateUser(userId);
+		Product validatedProduct = validateProduct(inputProductId);
+		validateQuantity(inputQuantity, validatedProduct);
 
 		Basket basket = redisClient.get(userId, Basket.class);
 		if (basket == null) {
@@ -38,7 +60,7 @@ public class BasketService {
 		}
 
 		Optional<Item> optionalItem = basket.getProducts().stream()
-				.filter(p -> p.getProductId().equals(request.getProductId()))
+				.filter(p -> p.getProductId().equals(inputProductId))
 				.findFirst();
 
 		if (optionalItem.isPresent()) {
@@ -83,6 +105,71 @@ public class BasketService {
 		return basket;
 	}
 
+	public void insertItemList(Long userId, List<Item> itemList){
+
+		final String key = userId.toString();
+
+		RedisSerializer<String> keySerializer = redisTemplate.getStringSerializer();
+		RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
+
+		redisTemplate.executePipelined((RedisCallback<Object>) RedisConnection -> {
+			itemList.forEach(item -> {
+				String Value = valueSerializer.serialize(item).toString();
+
+				RedisConnection.lPush(keySerializer.serialize(key),
+						valueSerializer.serialize(Value)
+				);
+			});
+			return null;
+		});
+	}
+
+	public void restoreBasketListOnOrderRollback(Long userId, List<Item> itemList){
+		TransactionSynchronizationManager.registerSynchronization(
+				new TransactionSynchronization() {
+					@Override
+					public void afterCompletion(int status){
+						if (status == STATUS_ROLLED_BACK) {
+							insertItemList(userId, itemList);
+						}
+					}
+				});
+	}
+
+	public List<Item> basketDelete(Long userId){
+
+		String key = generateCartKey(userId);
+
+		List<Object> basketListObject = redisTemplate.execute(
+				new SessionCallback<List<Object>>() {
+					@Override
+					public List<Object> execute(RedisOperations redisOperations)
+							throws DataAccessException{
+						try {
+							redisOperations.watch(key);
+							redisOperations.multi();
+							redisOperations.opsForList().range(key, 0, -1);
+							redisOperations.delete(key);
+							return redisOperations.exec();
+						} catch (Exception exception) {
+							redisOperations.discard();
+							throw exception;
+						}
+
+					}
+				}
+		);
+		List<Item> items = (List<Item>) basketListObject.get(0);
+
+		return items;
+	}
+
+	private User validateUser(Long userId){
+		return userRepository.findById(userId)
+				.orElseThrow(() -> new CartException(CartErrorCode.USER_NOT_FOUND));
+	}
+
+
 	private Product validateProduct(Long productId){
 		Product product = productRepository.findById(productId)
 				.orElseThrow(() -> new CartException(CartErrorCode.THIS_PRODUCT_DOES_NOT_EXIST));
@@ -93,5 +180,11 @@ public class BasketService {
 		}
 
 		return product;
+	}
+
+	private void validateQuantity(Integer inputQuantity, Product product){
+		if (inputQuantity <= 0 || inputQuantity > product.getStock()) {
+			throw new CartException(CartErrorCode.INVALID_QUANTITY);
+		}
 	}
 }
