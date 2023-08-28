@@ -187,10 +187,4 @@ public class BasketService {
 			throw new CartException(CartErrorCode.INVALID_QUANTITY);
 		}
 	}
-
-	private void run(Long userId, List<Item> itemList){
-		restoreBasketListOnOrderRollback(userId, itemList);
-		List<Item> items = basketDelete(userId);
-		System.out.println(items);
-	}
 }
